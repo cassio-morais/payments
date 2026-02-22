@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/cassiomorais/payments/internal/domain/account"
+	"github.com/cassiomorais/payments/internal/domain/outbox"
 	"github.com/cassiomorais/payments/internal/domain/payment"
 	"github.com/google/uuid"
 )
@@ -255,4 +256,42 @@ func (m *MockTransactionManager) WithTransaction(ctx context.Context, fn func(ct
 		return m.WithTransactionFunc(ctx, fn)
 	}
 	return fn(ctx)
+}
+
+// --- Outbox Repository Mock ---
+
+// MockOutboxRepository is a mock implementation of outbox.Repository.
+type MockOutboxRepository struct {
+	InsertFunc        func(ctx context.Context, entry *outbox.Entry) error
+	GetPendingFunc    func(ctx context.Context, limit int) ([]*outbox.Entry, error)
+	MarkPublishedFunc func(ctx context.Context, id uuid.UUID) error
+	MarkFailedFunc    func(ctx context.Context, id uuid.UUID) error
+}
+
+func (m *MockOutboxRepository) Insert(ctx context.Context, entry *outbox.Entry) error {
+	if m.InsertFunc != nil {
+		return m.InsertFunc(ctx, entry)
+	}
+	return nil
+}
+
+func (m *MockOutboxRepository) GetPending(ctx context.Context, limit int) ([]*outbox.Entry, error) {
+	if m.GetPendingFunc != nil {
+		return m.GetPendingFunc(ctx, limit)
+	}
+	return nil, nil
+}
+
+func (m *MockOutboxRepository) MarkPublished(ctx context.Context, id uuid.UUID) error {
+	if m.MarkPublishedFunc != nil {
+		return m.MarkPublishedFunc(ctx, id)
+	}
+	return nil
+}
+
+func (m *MockOutboxRepository) MarkFailed(ctx context.Context, id uuid.UUID) error {
+	if m.MarkFailedFunc != nil {
+		return m.MarkFailedFunc(ctx, id)
+	}
+	return nil
 }
