@@ -39,7 +39,9 @@ func NewPaymentService(
 	}
 }
 
-// CreatePaymentRequest holds the input for creating a payment.
+// CreatePaymentRequest holds the service layer input for creating a payment.
+// This uses business domain types (int64 cents, UUID, domain enums) rather than HTTP types.
+// Controllers convert their HTTP DTOs to this type.
 type CreatePaymentRequest struct {
 	IdempotencyKey       string
 	PaymentType          payment.PaymentType
@@ -154,7 +156,7 @@ func (s *PaymentService) executeSync(ctx context.Context, p *payment.Payment) (*
 		// Add event
 		return s.paymentRepo.AddEvent(txCtx, &payment.PaymentEvent{
 			ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCompleted),
-			EventData: map[string]interface{}{
+			EventData: map[string]any{
 				"type":         string(p.PaymentType),
 				"amount_cents": p.Amount.ValueCents,
 				"status":       string(p.Status),
@@ -181,7 +183,7 @@ func (s *PaymentService) enqueueAsync(ctx context.Context, p *payment.Payment) (
 			"payment",
 			p.ID,
 			"payment.created",
-			map[string]interface{}{
+			map[string]any{
 				"payment_id":   p.ID.String(),
 				"type":         string(p.PaymentType),
 				"amount_cents": p.Amount.ValueCents,
@@ -196,7 +198,7 @@ func (s *PaymentService) enqueueAsync(ctx context.Context, p *payment.Payment) (
 		// Add event
 		return s.paymentRepo.AddEvent(txCtx, &payment.PaymentEvent{
 			ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCreated),
-			EventData: map[string]interface{}{
+			EventData: map[string]any{
 				"type":         string(p.PaymentType),
 				"amount_cents": p.Amount.ValueCents,
 				"status":       string(p.Status),
@@ -318,7 +320,7 @@ func (s *PaymentService) processExternalPayment(ctx context.Context, p *payment.
 	// Add event
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
 		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCompleted),
-		EventData: map[string]interface{}{
+		EventData: map[string]any{
 			"provider_tx_id": txID,
 			"amount_cents":   p.Amount.ValueCents,
 		},
@@ -337,7 +339,7 @@ func (s *PaymentService) failPayment(ctx context.Context, p *payment.Payment, re
 	}
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
 		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentFailed),
-		EventData: map[string]interface{}{"error": reason},
+		EventData: map[string]any{"error": reason},
 	})
 	return domainErrors.NewDomainError("payment_failed", reason, nil)
 }
@@ -411,7 +413,7 @@ func (s *PaymentService) RefundPayment(ctx context.Context, paymentID uuid.UUID)
 
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
 		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentRefunded),
-		EventData: map[string]interface{}{"amount_cents": p.Amount.ValueCents},
+		EventData: map[string]any{"amount_cents": p.Amount.ValueCents},
 	})
 
 	return p, nil

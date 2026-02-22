@@ -12,7 +12,7 @@ type Entry struct {
 	AggregateType string
 	AggregateID   uuid.UUID
 	EventType     string
-	Payload       map[string]interface{}
+	Payload       map[string]any
 	Status        Status
 	RetryCount    int
 	MaxRetries    int
@@ -30,7 +30,7 @@ const (
 )
 
 // NewEntry creates a new outbox entry in pending status.
-func NewEntry(aggregateType string, aggregateID uuid.UUID, eventType string, payload map[string]interface{}) *Entry {
+func NewEntry(aggregateType string, aggregateID uuid.UUID, eventType string, payload map[string]any) *Entry {
 	return &Entry{
 		ID:            uuid.New(),
 		AggregateType: aggregateType,

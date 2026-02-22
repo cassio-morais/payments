@@ -42,7 +42,7 @@ func NewTestPayment(
 		Status:               payment.StatusPending,
 		RetryCount:           0,
 		MaxRetries:           3,
-		Metadata:             make(map[string]interface{}),
+		Metadata:             make(map[string]any),
 		CreatedAt:            now,
 		UpdatedAt:            now,
 	}

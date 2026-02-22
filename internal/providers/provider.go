@@ -26,7 +26,7 @@ type ProcessRequest struct {
 	PaymentID   string
 	AmountCents int64 // in cents
 	Currency    string
-	Metadata    map[string]interface{}
+	Metadata    map[string]any
 }
 
 // RefundRequest contains the data needed to refund a payment.

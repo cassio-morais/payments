@@ -62,7 +62,7 @@ type Payment struct {
 	LastError              *string
 	SagaID                 *uuid.UUID
 	SagaStep               int
-	Metadata               map[string]interface{}
+	Metadata               map[string]any
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 	CompletedAt            *time.Time
@@ -117,7 +117,7 @@ func NewPayment(
 		Status:               StatusPending,
 		RetryCount:           0,
 		MaxRetries:           3,
-		Metadata:             make(map[string]interface{}),
+		Metadata:             make(map[string]any),
 		CreatedAt:            now,
 		UpdatedAt:            now,
 	}, nil

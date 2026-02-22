@@ -27,7 +27,7 @@ func NewStreamProducer(client *redis.Client) *StreamProducer {
 }
 
 // PublishPaymentEvent publishes a payment event to the stream
-func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID string, eventType string, data map[string]interface{}) error {
+func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID string, eventType string, data map[string]any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal event data: %w", err)
@@ -35,7 +35,7 @@ func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID stri
 
 	args := &redis.XAddArgs{
 		Stream: PaymentStream,
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			"payment_id": paymentID,
 			"event_type": eventType,
 			"payload":    string(payload),
@@ -52,7 +52,7 @@ func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID stri
 }
 
 // PublishWebhookEvent publishes a webhook event to the stream
-func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID string, data map[string]interface{}) error {
+func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID string, data map[string]any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("failed to marshal webhook data: %w", err)
@@ -60,7 +60,7 @@ func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID stri
 
 	args := &redis.XAddArgs{
 		Stream: WebhookStream,
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			"webhook_id": webhookID,
 			"payload":    string(payload),
 			"timestamp":  time.Now().Unix(),
@@ -76,7 +76,7 @@ func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID stri
 }
 
 // PublishToDLQ publishes a failed message to the dead letter queue
-func (p *StreamProducer) PublishToDLQ(ctx context.Context, paymentID string, reason string, originalData map[string]interface{}) error {
+func (p *StreamProducer) PublishToDLQ(ctx context.Context, paymentID string, reason string, originalData map[string]any) error {
 	payload, err := json.Marshal(originalData)
 	if err != nil {
 		return fmt.Errorf("failed to marshal DLQ data: %w", err)
@@ -84,7 +84,7 @@ func (p *StreamProducer) PublishToDLQ(ctx context.Context, paymentID string, rea
 
 	args := &redis.XAddArgs{
 		Stream: DLQStream,
-		Values: map[string]interface{}{
+		Values: map[string]any{
 			"payment_id": paymentID,
 			"reason":     reason,
 			"payload":    string(payload),

@@ -233,7 +233,7 @@ func (r *PaymentRepository) GetEvents(ctx context.Context, paymentID uuid.UUID) 
 
 // scanPayment scans a payment from any source implementing the scanner interface.
 func (r *PaymentRepository) scanPayment(s scanner) (*payment.Payment, error) {
-	p := &payment.Payment{Metadata: make(map[string]interface{})}
+	p := &payment.Payment{Metadata: make(map[string]any)}
 	var (
 		paymentType string
 		amountStr   string

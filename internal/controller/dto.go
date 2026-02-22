@@ -9,6 +9,8 @@ import (
 )
 
 // --- Request DTOs ---
+// These DTOs handle HTTP/JSON concerns (float64 for money, string for IDs, validation tags).
+// Controllers convert these to service layer DTOs before calling business logic.
 
 // CreateAccountRequest holds the input for creating an account.
 type CreateAccountRequest struct {
@@ -82,7 +84,7 @@ type PaymentResponse struct {
 	RetryCount             int                    `json:"retry_count"`
 	MaxRetries             int                    `json:"max_retries"`
 	LastError              *string                `json:"last_error,omitempty"`
-	Metadata               map[string]interface{} `json:"metadata,omitempty"`
+	Metadata               map[string]any `json:"metadata,omitempty"`
 	CreatedAt              time.Time              `json:"created_at"`
 	UpdatedAt              time.Time              `json:"updated_at"`
 	CompletedAt            *time.Time             `json:"completed_at,omitempty"`

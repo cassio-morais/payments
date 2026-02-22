@@ -47,6 +47,6 @@ type PaymentEvent struct {
 	ID        uuid.UUID
 	PaymentID uuid.UUID
 	EventType string
-	EventData map[string]interface{}
+	EventData map[string]any
 	CreatedAt time.Time
 }

@@ -19,7 +19,9 @@ func NewAccountService(accountRepo account.Repository) *AccountService {
 	}
 }
 
-// CreateAccountRequest holds the input for creating an account.
+// CreateAccountRequest holds the service layer input for creating an account.
+// This uses business domain types (int64 cents, UUIDs) rather than HTTP types.
+// Controllers convert their HTTP DTOs to this type.
 type CreateAccountRequest struct {
 	UserID         string
 	InitialBalance int64 // in cents

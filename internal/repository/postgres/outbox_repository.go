@@ -71,7 +71,7 @@ func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*outbox
 		}
 		e.Status = outbox.Status(status)
 		if len(payload) > 0 {
-			e.Payload = make(map[string]interface{})
+			e.Payload = make(map[string]any)
 			if err := json.Unmarshal(payload, &e.Payload); err != nil {
 				return nil, fmt.Errorf("unmarshal outbox payload: %w", err)
 			}

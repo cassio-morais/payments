@@ -34,7 +34,7 @@ var errorMappings = []errorMapping{
 }
 
 // writeJSON writes a JSON response.
-func writeJSON(w http.ResponseWriter, status int, v interface{}) {
+func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
@@ -80,7 +80,7 @@ func writeError(w http.ResponseWriter, err error) {
 }
 
 // decodeAndValidate decodes JSON body into dst and validates it.
-func decodeAndValidate(r *http.Request, dst interface{}) error {
+func decodeAndValidate(r *http.Request, dst any) error {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
 		return domainErrors.NewValidationError("body", "invalid JSON: "+err.Error())
 	}
