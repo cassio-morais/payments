@@ -13,7 +13,6 @@ A production-ready payment processing API demonstrating distributed systems patt
 ### Distributed Systems Patterns
 - **Transactional Outbox**: Reliable event publishing without distributed transactions
 - **Distributed Locking** (Redis): Prevent duplicate processing across instances
-- **Saga Pattern**: Complex workflows with compensation for failures
 - **Circuit Breaker**: Protection against cascading failures from external services
 - **Optimistic Locking**: Safe concurrent balance updates
 - **Idempotency**: Multi-layer (API + database) for exactly-once semantics
@@ -31,8 +30,8 @@ A production-ready payment processing API demonstrating distributed systems patt
 ```
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │             │         │             │         │             │
-│  HTTP API   │────────▶│  Use Cases  │────────▶│  Domain     │
-│  (chi)      │         │             │         │  Entities   │
+│  Handlers   │────────▶│  Services   │────────▶│  Domain     │
+│  (HTTP)     │         │  (Business) │         │  Entities   │
 │             │         │             │         │             │
 └─────────────┘         └─────────────┘         └─────────────┘
                                │                        │
@@ -41,7 +40,7 @@ A production-ready payment processing API demonstrating distributed systems patt
                         ┌─────────────┐         ┌─────────────┐
                         │             │         │             │
                         │ Redis       │         │ PostgreSQL  │
-                        │ Streams     │         │ Repository  │
+                        │ Streams     │         │ Repositories│
                         │             │         │             │
                         └─────────────┘         └─────────────┘
                                │
@@ -55,27 +54,34 @@ A production-ready payment processing API demonstrating distributed systems patt
                         └─────────────┘
 ```
 
-### Clean Architecture Layers
+### Service Layer Pattern
 
 1. **Domain Layer** (`internal/domain/`)
-   - Business entities (Payment, Account)
+   - Business entities (Payment, Account, Outbox)
    - State machines and business rules
-   - Repository interfaces
+   - Repository interfaces (defined by domain, implemented elsewhere)
 
-2. **Application Layer** (`internal/application/`)
-   - Use cases (CreatePayment, ProcessPayment, etc.)
+2. **Service Layer** (`internal/service/`)
+   - AccountService, PaymentService
    - Business workflow orchestration
+   - Transaction management
 
-3. **Infrastructure Layer** (`internal/infrastructure/`)
-   - PostgreSQL repositories
-   - Redis locks and streams
-   - Mock payment providers
-   - Observability (logging, tracing, metrics)
+3. **Repository Layer** (`internal/repository/postgres/`)
+   - PostgreSQL repository implementations
+   - Implements domain repository interfaces
 
-4. **Interface Layer** (`internal/interfaces/`)
+4. **Handler Layer** (`internal/handler/`)
    - HTTP API handlers
-   - Background workers
-   - DTOs and validation
+   - DTOs and request validation
+
+5. **Infrastructure Layer** (`internal/infrastructure/`)
+   - Redis (locks, streams)
+   - Observability (logging, tracing, metrics)
+   - Configuration management
+
+6. **Providers** (`internal/providers/`)
+   - External payment provider integrations
+   - Mock providers for testing
 
 ## Technology Stack
 
