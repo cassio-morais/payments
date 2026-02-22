@@ -1,4 +1,4 @@
-package handlers_test
+package handler_test
 
 import (
 	"bytes"
@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
+	paymentApp "github.com/cassiomorais/payments/internal/service"
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/handler/dto"
-	"github.com/cassiomorais/payments/internal/handler"
+	
+	
 	"github.com/cassiomorais/payments/internal/testutil"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -48,7 +48,7 @@ func TestGetPayment_InvalidUUID(t *testing.T) {
 		t.Errorf("expected 400, got %d", w.Code)
 	}
 
-	var resp dto.ErrorResponse
+	var resp ErrorResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	if resp.Code != "invalid_id" {
 		t.Errorf("expected code invalid_id, got %s", resp.Code)
@@ -91,7 +91,7 @@ func TestGetPayment_Success(t *testing.T) {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
 
-	var resp dto.PaymentResponse
+	var resp PaymentResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	if resp.ID != p.ID {
 		t.Errorf("expected payment ID %s, got %s", p.ID, resp.ID)
@@ -188,7 +188,7 @@ func TestListPayments_Empty(t *testing.T) {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
 
-	var resp []dto.PaymentResponse
+	var resp []PaymentResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	if len(resp) != 0 {
 		t.Errorf("expected empty list, got %d items", len(resp))

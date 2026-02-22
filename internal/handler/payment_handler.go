@@ -1,13 +1,13 @@
-package handlers
+package handler
 
 import (
 	"math"
 	"net/http"
 	"strconv"
 
-	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
+	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/handler/dto"
+	
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -39,7 +39,7 @@ func floatToCents(f float64) int64 {
 
 // CreatePayment handles POST /api/v1/payments
 func (h *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
-	var req dto.CreatePaymentRequest
+	var req CreatePaymentRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeError(w, err)
 		return
@@ -52,7 +52,7 @@ func (h *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	sourceID, err := uuid.Parse(req.SourceAccountID)
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid source_account_id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid source_account_id", Code: "invalid_id"})
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	if req.DestinationAccountID != "" {
 		d, err := uuid.Parse(req.DestinationAccountID)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
+			writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
 			return
 		}
 		destID = &d
@@ -90,14 +90,14 @@ func (h *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	if resp.IsAsync {
 		status = http.StatusAccepted
 	}
-	writeJSON(w, status, dto.FromPayment(resp.Payment))
+	writeJSON(w, status, FromPayment(resp.Payment))
 }
 
 // GetPayment handles GET /api/v1/payments/{id}
 func (h *PaymentHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *PaymentHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, dto.FromPayment(p))
+	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
 // ListPayments handles GET /api/v1/payments
@@ -139,9 +139,9 @@ func (h *PaymentHandler) ListPayments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := make([]*dto.PaymentResponse, 0, len(payments))
+	resp := make([]*PaymentResponse, 0, len(payments))
 	for _, p := range payments {
-		resp = append(resp, dto.FromPayment(p))
+		resp = append(resp, FromPayment(p))
 	}
 	writeJSON(w, http.StatusOK, resp)
 }
@@ -150,7 +150,7 @@ func (h *PaymentHandler) ListPayments(w http.ResponseWriter, r *http.Request) {
 func (h *PaymentHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
 		return
 	}
 
@@ -160,14 +160,14 @@ func (h *PaymentHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, dto.FromPayment(p))
+	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
 // CancelPayment handles POST /api/v1/payments/{id}/cancel
 func (h *PaymentHandler) CancelPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid payment id", Code: "invalid_id"})
 		return
 	}
 
@@ -186,12 +186,12 @@ func (h *PaymentHandler) CancelPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, dto.FromPayment(p))
+	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
 // Transfer handles POST /api/v1/transfers
 func (h *PaymentHandler) Transfer(w http.ResponseWriter, r *http.Request) {
-	var req dto.TransferRequest
+	var req TransferRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeError(w, err)
 		return
@@ -204,12 +204,12 @@ func (h *PaymentHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 
 	sourceID, err := uuid.Parse(req.SourceAccountID)
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid source_account_id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid source_account_id", Code: "invalid_id"})
 		return
 	}
 	destID, err := uuid.Parse(req.DestinationAccountID)
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
 		return
 	}
 
@@ -225,5 +225,5 @@ func (h *PaymentHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, dto.FromPayment(resp.Payment))
+	writeJSON(w, http.StatusCreated, FromPayment(resp.Payment))
 }

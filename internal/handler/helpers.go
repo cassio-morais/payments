@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
-	"github.com/cassiomorais/payments/internal/handler/dto"
+	
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 )
@@ -42,7 +42,7 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 
 // writeError maps domain errors to HTTP error responses.
 func writeError(w http.ResponseWriter, err error) {
-	resp := dto.ErrorResponse{Error: err.Error()}
+	resp := ErrorResponse{Error: err.Error()}
 
 	// Check for validation errors first.
 	var validationErr *domainErrors.ValidationError

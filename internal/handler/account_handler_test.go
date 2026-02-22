@@ -1,4 +1,4 @@
-package handlers_test
+package handler_test
 
 import (
 	"bytes"
@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
+	accountApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/domain/account"
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
-	"github.com/cassiomorais/payments/internal/handler/dto"
-	"github.com/cassiomorais/payments/internal/handler"
+	
+	
 	"github.com/cassiomorais/payments/internal/testutil"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
@@ -56,7 +56,7 @@ func TestCreateAccount_Success(t *testing.T) {
 		t.Errorf("expected 201, got %d", w.Code)
 	}
 
-	var resp dto.AccountResponse
+	var resp AccountResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	if resp.UserID != "user-1" {
 		t.Errorf("expected user_id user-1, got %s", resp.UserID)
@@ -119,7 +119,7 @@ func TestGetAccount_Success(t *testing.T) {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
 
-	var resp dto.AccountResponse
+	var resp AccountResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	if resp.ID != acct.ID {
 		t.Errorf("expected account ID %s, got %s", acct.ID, resp.ID)
@@ -145,7 +145,7 @@ func TestGetBalance_Success(t *testing.T) {
 		t.Errorf("expected 200, got %d", w.Code)
 	}
 
-	var resp dto.BalanceResponse
+	var resp BalanceResponse
 	json.NewDecoder(w.Body).Decode(&resp)
 	// 12345 cents = $123.45
 	if resp.Balance != 123.45 {

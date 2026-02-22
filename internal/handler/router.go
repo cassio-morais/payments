@@ -1,16 +1,14 @@
-package http
+package handler
 
 import (
 	"time"
 
-	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
-	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
-	"github.com/cassiomorais/payments/internal/infrastructure/config"
 	"github.com/cassiomorais/payments/internal/domain/payment"
+	"github.com/cassiomorais/payments/internal/infrastructure/config"
 	"github.com/cassiomorais/payments/internal/infrastructure/observability"
-	"github.com/cassiomorais/payments/internal/repository/postgres"
-	"github.com/cassiomorais/payments/internal/handler"
 	customMW "github.com/cassiomorais/payments/internal/middleware"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/service"
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -21,18 +19,14 @@ import (
 
 // RouterDeps holds all dependencies needed to build the router.
 type RouterDeps struct {
-	Pool              *pgxpool.Pool
-	RedisClient       *redis.Client
-	PaymentRepo       payment.Repository
-	CreateAccountUC   *accountApp.CreateAccountUseCase
-	GetAccountUC      *accountApp.GetAccountUseCase
-	GetBalanceUC      *accountApp.GetBalanceUseCase
-	GetTransactionsUC *accountApp.GetTransactionsUseCase
-	CreatePaymentUC   *paymentApp.CreatePaymentUseCase
-	RefundPaymentUC   *paymentApp.RefundPaymentUseCase
-	IdempotencyRepo   *postgres.IdempotencyRepository
-	Metrics           *observability.Metrics
-	CORSConfig        config.CORSConfig
+	Pool            *pgxpool.Pool
+	RedisClient     *redis.Client
+	PaymentRepo     payment.Repository
+	AccountService  *service.AccountService
+	PaymentService  *service.PaymentService
+	IdempotencyRepo *postgres.IdempotencyRepository
+	Metrics         *observability.Metrics
+	CORSConfig      config.CORSConfig
 }
 
 // NewRouter creates a fully configured chi router.
@@ -57,9 +51,9 @@ func NewRouter(deps RouterDeps) *chi.Mux {
 	r.Use(customMW.Metrics(deps.Metrics))
 
 	// --- Handlers ---
-	healthH := handlers.NewHealthHandler(deps.Pool, deps.RedisClient)
-	accountH := handlers.NewAccountHandler(deps.CreateAccountUC, deps.GetAccountUC, deps.GetBalanceUC, deps.GetTransactionsUC)
-	paymentH := handlers.NewPaymentHandler(deps.CreatePaymentUC, deps.RefundPaymentUC, deps.PaymentRepo)
+	healthH := NewHealthHandler(deps.Pool, deps.RedisClient)
+	accountH := NewAccountHandler(deps.AccountService)
+	paymentH := NewPaymentHandler(deps.PaymentService, deps.PaymentRepo)
 
 	// --- Health endpoints ---
 	r.Get("/health", healthH.Health)

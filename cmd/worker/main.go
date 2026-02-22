@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
+	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/bootstrap"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/provider"

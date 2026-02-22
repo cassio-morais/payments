@@ -1,11 +1,11 @@
-package handlers
+package handler
 
 import (
 	"net/http"
 	"strconv"
 
-	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
-	"github.com/cassiomorais/payments/internal/handler/dto"
+	accountApp "github.com/cassiomorais/payments/internal/service"
+	
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -35,7 +35,7 @@ func NewAccountHandler(
 
 // Create handles POST /api/v1/accounts
 func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
-	var req dto.CreateAccountRequest
+	var req CreateAccountRequest
 	if err := decodeAndValidate(r, &req); err != nil {
 		writeError(w, err)
 		return
@@ -51,14 +51,14 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusCreated, dto.FromAccount(acct))
+	writeJSON(w, http.StatusCreated, FromAccount(acct))
 }
 
 // Get handles GET /api/v1/accounts/{id}
 func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
 		return
 	}
 
@@ -68,14 +68,14 @@ func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, dto.FromAccount(acct))
+	writeJSON(w, http.StatusOK, FromAccount(acct))
 }
 
 // GetBalance handles GET /api/v1/accounts/{id}/balance
 func (h *AccountHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *AccountHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, dto.BalanceResponse{
+	writeJSON(w, http.StatusOK, BalanceResponse{
 		AccountID: id,
 		Balance:   float64(balanceCents) / 100.0,
 		Currency:  currency,
@@ -96,7 +96,7 @@ func (h *AccountHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 func (h *AccountHandler) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, dto.ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
+		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid account id", Code: "invalid_id"})
 		return
 	}
 
@@ -112,9 +112,9 @@ func (h *AccountHandler) GetTransactions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	resp := make([]*dto.TransactionResponse, 0, len(txns))
+	resp := make([]*TransactionResponse, 0, len(txns))
 	for _, tx := range txns {
-		resp = append(resp, dto.FromTransaction(tx))
+		resp = append(resp, FromTransaction(tx))
 	}
 	writeJSON(w, http.StatusOK, resp)
 }

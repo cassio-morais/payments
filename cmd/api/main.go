@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
-	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
+	accountApp "github.com/cassiomorais/payments/internal/service"
+	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/bootstrap"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/provider"
