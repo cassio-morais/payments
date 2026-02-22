@@ -1,40 +1,30 @@
 package handler
 
 import (
-	"math"
 	"net/http"
 	"strconv"
 
-	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	
+	"github.com/cassiomorais/payments/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 // PaymentHandler handles payment-related HTTP requests.
 type PaymentHandler struct {
-	createUC    *paymentApp.CreatePaymentUseCase
-	refundUC    *paymentApp.RefundPaymentUseCase
-	paymentRepo payment.Repository
+	paymentService *service.PaymentService
+	paymentRepo    payment.Repository
 }
 
 // NewPaymentHandler creates a new PaymentHandler.
 func NewPaymentHandler(
-	createUC *paymentApp.CreatePaymentUseCase,
-	refundUC *paymentApp.RefundPaymentUseCase,
+	paymentService *service.PaymentService,
 	paymentRepo payment.Repository,
 ) *PaymentHandler {
 	return &PaymentHandler{
-		createUC:    createUC,
-		refundUC:    refundUC,
-		paymentRepo: paymentRepo,
+		paymentService: paymentService,
+		paymentRepo:    paymentRepo,
 	}
-}
-
-// floatToCents converts a float64 amount to int64 cents.
-func floatToCents(f float64) int64 {
-	return int64(math.Round(f * 100))
 }
 
 // CreatePayment handles POST /api/v1/payments
@@ -50,32 +40,31 @@ func (h *PaymentHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		idempotencyKey = uuid.New().String()
 	}
 
-	sourceID, err := uuid.Parse(req.SourceAccountID)
-	if err != nil {
+	sourceID := parseUUID(*req.SourceAccountID)
+	if sourceID == nil && req.SourceAccountID != nil {
 		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid source_account_id", Code: "invalid_id"})
 		return
 	}
 
 	var destID *uuid.UUID
-	if req.DestinationAccountID != "" {
-		d, err := uuid.Parse(req.DestinationAccountID)
-		if err != nil {
+	if req.DestinationAccountID != nil {
+		destID = parseUUID(*req.DestinationAccountID)
+		if destID == nil {
 			writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
 			return
 		}
-		destID = &d
 	}
 
 	var provider *payment.Provider
-	if req.Provider != "" {
-		p := payment.Provider(req.Provider)
+	if req.Provider != nil {
+		p := payment.Provider(*req.Provider)
 		provider = &p
 	}
 
-	resp, err := h.createUC.Execute(r.Context(), paymentApp.CreatePaymentRequest{
+	resp, err := h.paymentService.CreatePayment(r.Context(), service.CreatePaymentRequest{
 		IdempotencyKey:       idempotencyKey,
 		PaymentType:          payment.PaymentType(req.PaymentType),
-		SourceAccountID:      &sourceID,
+		SourceAccountID:      sourceID,
 		DestinationAccountID: destID,
 		Amount:               floatToCents(req.Amount),
 		Currency:             req.Currency,
@@ -154,7 +143,7 @@ func (h *PaymentHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p, err := h.refundUC.Execute(r.Context(), id)
+	p, err := h.paymentService.RefundPayment(r.Context(), id)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -213,7 +202,7 @@ func (h *PaymentHandler) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := h.createUC.Transfer(r.Context(), paymentApp.TransferRequest{
+	resp, err := h.paymentService.Transfer(r.Context(), service.TransferRequest{
 		IdempotencyKey:       idempotencyKey,
 		SourceAccountID:      sourceID,
 		DestinationAccountID: destID,

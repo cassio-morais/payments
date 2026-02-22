@@ -4,32 +4,20 @@ import (
 	"net/http"
 	"strconv"
 
-	accountApp "github.com/cassiomorais/payments/internal/service"
-	
+	"github.com/cassiomorais/payments/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 // AccountHandler handles account-related HTTP requests.
 type AccountHandler struct {
-	createUC       *accountApp.CreateAccountUseCase
-	getUC          *accountApp.GetAccountUseCase
-	getBalanceUC   *accountApp.GetBalanceUseCase
-	getTransactionsUC *accountApp.GetTransactionsUseCase
+	accountService *service.AccountService
 }
 
 // NewAccountHandler creates a new AccountHandler.
-func NewAccountHandler(
-	createUC *accountApp.CreateAccountUseCase,
-	getUC *accountApp.GetAccountUseCase,
-	getBalanceUC *accountApp.GetBalanceUseCase,
-	getTransactionsUC *accountApp.GetTransactionsUseCase,
-) *AccountHandler {
+func NewAccountHandler(accountService *service.AccountService) *AccountHandler {
 	return &AccountHandler{
-		createUC:       createUC,
-		getUC:          getUC,
-		getBalanceUC:   getBalanceUC,
-		getTransactionsUC: getTransactionsUC,
+		accountService: accountService,
 	}
 }
 
@@ -41,7 +29,7 @@ func (h *AccountHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acct, err := h.createUC.Execute(r.Context(), accountApp.CreateAccountRequest{
+	acct, err := h.accountService.CreateAccount(r.Context(), service.CreateAccountRequest{
 		UserID:         req.UserID,
 		InitialBalance: floatToCents(req.InitialBalance),
 		Currency:       req.Currency,
@@ -62,7 +50,7 @@ func (h *AccountHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	acct, err := h.getUC.Execute(r.Context(), id)
+	acct, err := h.accountService.GetAccount(r.Context(), id)
 	if err != nil {
 		writeError(w, err)
 		return
@@ -79,16 +67,15 @@ func (h *AccountHandler) GetBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	balanceCents, currency, err := h.getBalanceUC.Execute(r.Context(), id)
+	balanceCents, currency, err := h.accountService.GetBalance(r.Context(), id)
 	if err != nil {
 		writeError(w, err)
 		return
 	}
 
 	writeJSON(w, http.StatusOK, BalanceResponse{
-		AccountID: id,
-		Balance:   float64(balanceCents) / 100.0,
-		Currency:  currency,
+		Balance:  centsToFloat(balanceCents),
+		Currency: currency,
 	})
 }
 
@@ -106,7 +93,7 @@ func (h *AccountHandler) GetTransactions(w http.ResponseWriter, r *http.Request)
 		limit = 20
 	}
 
-	txns, err := h.getTransactionsUC.Execute(r.Context(), id, limit, offset)
+	txns, err := h.accountService.GetTransactions(r.Context(), id, limit, offset)
 	if err != nil {
 		writeError(w, err)
 		return
