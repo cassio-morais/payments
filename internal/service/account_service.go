@@ -19,15 +19,6 @@ func NewAccountService(accountRepo account.Repository) *AccountService {
 	}
 }
 
-// CreateAccountRequest holds the service layer input for creating an account.
-// This uses business domain types (int64 cents, UUIDs) rather than HTTP types.
-// Controllers convert their HTTP DTOs to this type.
-type CreateAccountRequest struct {
-	UserID         string
-	InitialBalance int64 // in cents
-	Currency       string
-}
-
 // CreateAccount creates a new account.
 func (s *AccountService) CreateAccount(ctx context.Context, req CreateAccountRequest) (*account.Account, error) {
 	acct, err := account.NewAccount(req.UserID, req.InitialBalance, req.Currency)

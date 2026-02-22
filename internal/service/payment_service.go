@@ -39,25 +39,6 @@ func NewPaymentService(
 	}
 }
 
-// CreatePaymentRequest holds the service layer input for creating a payment.
-// This uses business domain types (int64 cents, UUID, domain enums) rather than HTTP types.
-// Controllers convert their HTTP DTOs to this type.
-type CreatePaymentRequest struct {
-	IdempotencyKey       string
-	PaymentType          payment.PaymentType
-	SourceAccountID      *uuid.UUID
-	DestinationAccountID *uuid.UUID
-	Amount               int64 // in cents
-	Currency             string
-	Provider             *payment.Provider
-}
-
-// CreatePaymentResponse holds the result of creating a payment.
-type CreatePaymentResponse struct {
-	Payment *payment.Payment
-	IsAsync bool
-}
-
 // CreatePayment creates a payment and routes it to sync or async processing.
 func (s *PaymentService) CreatePayment(ctx context.Context, req CreatePaymentRequest) (*CreatePaymentResponse, error) {
 	// 1. Check idempotency
@@ -210,15 +191,6 @@ func (s *PaymentService) enqueueAsync(ctx context.Context, p *payment.Payment) (
 	}
 
 	return &CreatePaymentResponse{Payment: p, IsAsync: true}, nil
-}
-
-// TransferRequest is a simplified request for internal transfers.
-type TransferRequest struct {
-	IdempotencyKey       string
-	SourceAccountID      uuid.UUID
-	DestinationAccountID uuid.UUID
-	Amount               int64 // in cents
-	Currency             string
 }
 
 // Transfer creates an internal transfer between two accounts.
