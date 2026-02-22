@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cassiomorais/payments/internal/config"
+	"github.com/cassiomorais/payments/internal/infrastructure/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

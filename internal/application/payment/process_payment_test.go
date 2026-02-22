@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	paymentApp "github.com/cassiomorais/payments/internal/application/payment"
+	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
 	domainPayment "github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/infrastructure/providers"
+	"github.com/cassiomorais/payments/internal/provider"
 	"github.com/cassiomorais/payments/internal/testutil"
 	"github.com/google/uuid"
 )

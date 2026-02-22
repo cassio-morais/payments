@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	accountApp "github.com/cassiomorais/payments/internal/application/account"
-	paymentApp "github.com/cassiomorais/payments/internal/application/payment"
+	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
+	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
 	"github.com/cassiomorais/payments/internal/bootstrap"
-	"github.com/cassiomorais/payments/internal/infrastructure/postgres"
-	"github.com/cassiomorais/payments/internal/infrastructure/providers"
-	appHTTP "github.com/cassiomorais/payments/internal/interfaces/http"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/provider"
+	appHTTP "github.com/cassiomorais/payments/internal/handler"
 )
 
 func main() {

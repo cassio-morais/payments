@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	paymentApp "github.com/cassiomorais/payments/internal/application/payment"
+	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/interfaces/http/dto"
+	"github.com/cassiomorais/payments/internal/handler/dto"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	paymentApp "github.com/cassiomorais/payments/internal/application/payment"
+	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/domain/payment"
 	"github.com/cassiomorais/payments/internal/testutil"

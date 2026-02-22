@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	accountApp "github.com/cassiomorais/payments/internal/application/account"
+	accountApp "github.com/cassiomorais/payments/internal/serviceaccount"
 	"github.com/cassiomorais/payments/internal/domain/account"
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/testutil"

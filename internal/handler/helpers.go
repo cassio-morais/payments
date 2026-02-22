@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
-	"github.com/cassiomorais/payments/internal/interfaces/http/dto"
+	"github.com/cassiomorais/payments/internal/handler/dto"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 )

@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	paymentApp "github.com/cassiomorais/payments/internal/application/payment"
+	paymentApp "github.com/cassiomorais/payments/internal/servicepayment"
 	"github.com/cassiomorais/payments/internal/bootstrap"
-	"github.com/cassiomorais/payments/internal/infrastructure/postgres"
-	"github.com/cassiomorais/payments/internal/infrastructure/providers"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/provider"
 	infraRedis "github.com/cassiomorais/payments/internal/infrastructure/redis"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"

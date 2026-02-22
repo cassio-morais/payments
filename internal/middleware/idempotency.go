@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cassiomorais/payments/internal/infrastructure/postgres"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
 )
 
 const maxIdempotencyBodySize = 1 << 20 // 1MB

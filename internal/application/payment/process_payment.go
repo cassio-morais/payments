@@ -7,7 +7,7 @@ import (
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/domain/account"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/infrastructure/providers"
+	"github.com/cassiomorais/payments/internal/provider"
 	"github.com/cassiomorais/payments/pkg/saga"
 	"github.com/google/uuid"
 )

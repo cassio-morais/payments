@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cassiomorais/payments/internal/config"
+	"github.com/cassiomorais/payments/internal/infrastructure/config"
 	"github.com/cassiomorais/payments/internal/infrastructure/observability"
-	"github.com/cassiomorais/payments/internal/infrastructure/postgres"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
 	infraRedis "github.com/cassiomorais/payments/internal/infrastructure/redis"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
