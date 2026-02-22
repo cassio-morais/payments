@@ -8,11 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/bootstrap"
-	"github.com/cassiomorais/payments/internal/repository/postgres"
-	"github.com/cassiomorais/payments/internal/provider"
 	infraRedis "github.com/cassiomorais/payments/internal/infrastructure/redis"
+	"github.com/cassiomorais/payments/internal/provider"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/service"
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
@@ -34,11 +34,11 @@ func main() {
 	accountRepo := postgres.NewAccountRepository(app.Pool)
 	outboxRepo := postgres.NewOutboxRepository(app.Pool)
 	txManager := postgres.NewTxManager(app.Pool)
-	providerFactory := providers.NewFactory()
+	providerFactory := provider.NewFactory()
 	streamProducer := infraRedis.NewStreamProducer(app.Redis)
 
-	// --- Use cases ---
-	processPaymentUC := paymentApp.NewProcessPaymentUseCase(paymentRepo, accountRepo, txManager, providerFactory)
+	// --- Services ---
+	paymentService := service.NewPaymentService(paymentRepo, accountRepo, outboxRepo, txManager, providerFactory)
 
 	// --- Payment stream consumer ---
 	workerCfg := app.Config.Worker
@@ -68,7 +68,7 @@ func main() {
 
 	// 1. Payment processor (reads from Redis Streams).
 	g.Go(func() error {
-		return runPaymentProcessor(gCtx, app.Logger, consumer, processPaymentUC, app)
+		return runPaymentProcessor(gCtx, app.Logger, consumer, paymentService, app)
 	})
 
 	// 2. Outbox processor (polls outbox table and publishes to Redis Streams).
@@ -98,7 +98,7 @@ func runPaymentProcessor(
 	ctx context.Context,
 	logger zerolog.Logger,
 	consumer *infraRedis.StreamConsumer,
-	processUC *paymentApp.ProcessPaymentUseCase,
+	paymentService *service.PaymentService,
 	app *bootstrap.App,
 ) error {
 	for {
@@ -134,7 +134,7 @@ func runPaymentProcessor(
 
 				logger.Info().Str("payment_id", paymentID.String()).Msg("Processing payment")
 
-				if err := processUC.Execute(ctx, paymentID); err != nil {
+				if err := paymentService.ProcessPayment(ctx, paymentID); err != nil {
 					logger.Error().Err(err).Str("payment_id", paymentID.String()).Msg("Failed to process payment")
 					app.Metrics.PaymentErrors.WithLabelValues("external_payment", "processing_error").Inc()
 				} else {
