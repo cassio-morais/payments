@@ -10,7 +10,7 @@ import (
 
 	"github.com/cassiomorais/payments/internal/bootstrap"
 	infraRedis "github.com/cassiomorais/payments/internal/infrastructure/redis"
-	"github.com/cassiomorais/payments/internal/provider"
+	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/service"
 	"github.com/google/uuid"
@@ -34,7 +34,7 @@ func main() {
 	accountRepo := postgres.NewAccountRepository(app.Pool)
 	outboxRepo := postgres.NewOutboxRepository(app.Pool)
 	txManager := postgres.NewTxManager(app.Pool)
-	providerFactory := provider.NewFactory()
+	providerFactory := providers.NewFactory()
 	streamProducer := infraRedis.NewStreamProducer(app.Redis)
 
 	// --- Services ---

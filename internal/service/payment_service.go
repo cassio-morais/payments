@@ -9,7 +9,7 @@ import (
 	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/domain/outbox"
 	"github.com/cassiomorais/payments/internal/domain/payment"
-	"github.com/cassiomorais/payments/internal/provider"
+	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/google/uuid"
 )
 

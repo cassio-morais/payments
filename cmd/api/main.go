@@ -10,7 +10,7 @@ import (
 
 	"github.com/cassiomorais/payments/internal/bootstrap"
 	"github.com/cassiomorais/payments/internal/handler"
-	"github.com/cassiomorais/payments/internal/provider"
+	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/service"
 )
@@ -33,7 +33,7 @@ func main() {
 	txManager := postgres.NewTxManager(app.Pool)
 
 	// --- Services ---
-	providerFactory := provider.NewFactory()
+	providerFactory := providers.NewFactory()
 	accountService := service.NewAccountService(accountRepo)
 	paymentService := service.NewPaymentService(paymentRepo, accountRepo, outboxRepo, txManager, providerFactory)
 

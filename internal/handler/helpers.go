@@ -48,7 +48,6 @@ func writeError(w http.ResponseWriter, err error) {
 	var validationErr *domainErrors.ValidationError
 	if errors.As(err, &validationErr) {
 		resp.Code = "validation_error"
-		resp.Details = validationErr.Field
 		writeJSON(w, http.StatusBadRequest, resp)
 		return
 	}
