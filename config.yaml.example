@@ -1,0 +1,38 @@
+server:
+  port: 8080
+  read_timeout: 15s
+  write_timeout: 15s
+  shutdown_timeout: 30s
+
+database:
+  host: localhost
+  port: 5432
+  user: payments
+  password: payments
+  database: payments
+  max_connections: 25
+  min_connections: 5
+  conn_max_lifetime: 1h
+  ssl_mode: disable
+
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+  password: ""
+
+payment:
+  max_retries: 3
+  retry_delay: 1s
+  lock_ttl: 30s
+  processing_timeout: 60s
+  circuit_breaker_threshold: 10
+  circuit_breaker_timeout: 30s
+
+observability:
+  log_level: info
+  jaeger_endpoint: http://localhost:14268/api/traces
+  enable_metrics: true
+  enable_tracing: true
+
+instance_id: payments-local-1

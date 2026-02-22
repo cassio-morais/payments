@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx skills:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(go list:*)",
+      "Bash(go get:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(make build:*)",
+      "Bash(make test:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}

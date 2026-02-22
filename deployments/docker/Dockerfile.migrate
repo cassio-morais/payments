@@ -1,0 +1,7 @@
+FROM migrate/migrate:v4.17.0
+
+WORKDIR /migrations
+
+COPY internal/infrastructure/postgres/migrations ./
+
+ENTRYPOINT ["sh", "-c", "migrate -path=/migrations -database $DATABASE_URL up"]
