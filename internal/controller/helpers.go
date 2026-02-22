@@ -44,7 +44,6 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 func writeError(w http.ResponseWriter, err error) {
 	resp := ErrorResponse{Error: err.Error()}
 
-	// Check for validation errors first.
 	var validationErr *domainErrors.ValidationError
 	if errors.As(err, &validationErr) {
 		resp.Code = "validation_error"
@@ -52,7 +51,6 @@ func writeError(w http.ResponseWriter, err error) {
 		return
 	}
 
-	// Check against registry.
 	for _, m := range errorMappings {
 		if errors.Is(err, m.err) {
 			resp.Code = m.code
@@ -64,7 +62,6 @@ func writeError(w http.ResponseWriter, err error) {
 		}
 	}
 
-	// Check for generic domain error.
 	var domainErr *domainErrors.DomainError
 	if errors.As(err, &domainErr) {
 		resp.Code = domainErr.Code

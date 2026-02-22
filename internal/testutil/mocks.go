@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// --- Payment Repository Mock ---
 
 // MockPaymentRepository is a mock implementation of payment.Repository.
 type MockPaymentRepository struct {
@@ -115,7 +114,6 @@ func (m *MockPaymentRepository) GetEvents(ctx context.Context, paymentID uuid.UU
 	return m.events[paymentID], nil
 }
 
-// --- Account Repository Mock ---
 
 // MockAccountRepository is a mock implementation of account.Repository.
 type MockAccountRepository struct {
@@ -240,7 +238,6 @@ func (m *MockAccountRepository) GetAccountByID(id uuid.UUID) *account.Account {
 	return m.accounts[id]
 }
 
-// --- Transaction Manager Mock ---
 
 // MockTransactionManager is a mock implementation of TransactionManager.
 type MockTransactionManager struct {
@@ -258,7 +255,6 @@ func (m *MockTransactionManager) WithTransaction(ctx context.Context, fn func(ct
 	return fn(ctx)
 }
 
-// --- Outbox Repository Mock ---
 
 // MockOutboxRepository is a mock implementation of outbox.Repository.
 type MockOutboxRepository struct {

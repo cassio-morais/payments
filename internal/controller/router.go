@@ -33,7 +33,6 @@ type RouterDeps struct {
 func NewRouter(deps RouterDeps) *chi.Mux {
 	r := chi.NewRouter()
 
-	// --- Global middleware ---
 	r.Use(chimw.RequestID)
 	r.Use(customMW.Tracing())
 	r.Use(chimw.RealIP)
@@ -50,20 +49,16 @@ func NewRouter(deps RouterDeps) *chi.Mux {
 	}))
 	r.Use(customMW.Metrics(deps.Metrics))
 
-	// --- Handlers ---
 	healthH := NewHealthController(deps.Pool, deps.RedisClient)
 	accountH := NewAccountController(deps.AccountService)
 	paymentH := NewPaymentController(deps.PaymentService, deps.PaymentRepo)
 
-	// --- Health endpoints ---
 	r.Get("/health", healthH.Health)
 	r.Get("/health/live", healthH.Liveness)
 	r.Get("/health/ready", healthH.Readiness)
 
-	// --- Metrics ---
 	r.Handle("/metrics", promhttp.Handler())
 
-	// --- API v1 ---
 	r.Route("/api/v1", func(r chi.Router) {
 		// Idempotency middleware for mutating endpoints.
 		idempotencyMW := customMW.Idempotency(deps.IdempotencyRepo)

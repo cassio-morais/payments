@@ -21,7 +21,6 @@ func Idempotency(idempotencyRepo *postgres.IdempotencyRepository) func(http.Hand
 				return
 			}
 
-			// Check for cached response.
 			entry, err := idempotencyRepo.Get(r.Context(), key)
 			if err == nil && entry != nil {
 				w.Header().Set("Content-Type", "application/json")

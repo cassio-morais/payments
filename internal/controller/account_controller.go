@@ -21,7 +21,6 @@ func NewAccountController(accountService *service.AccountService) *AccountContro
 	}
 }
 
-// Create handles POST /api/v1/accounts
 func (h *AccountController) Create(w http.ResponseWriter, r *http.Request) {
 	var req CreateAccountRequest
 	if err := decodeAndValidate(r, &req); err != nil {

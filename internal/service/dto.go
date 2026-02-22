@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// --- Account Service DTOs ---
 
 // CreateAccountRequest holds the service layer input for creating an account.
 // This uses business domain types (int64 cents, UUIDs) rather than HTTP types.
@@ -16,7 +15,6 @@ type CreateAccountRequest struct {
 	Currency       string
 }
 
-// --- Payment Service DTOs ---
 
 // CreatePaymentRequest holds the service layer input for creating a payment.
 // This uses business domain types (int64 cents, UUID, domain enums) rather than HTTP types.

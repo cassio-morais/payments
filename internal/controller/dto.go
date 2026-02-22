@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// --- Request DTOs ---
 // These DTOs handle HTTP/JSON concerns (float64 for money, string for IDs, validation tags).
 // Controllers convert these to service layer DTOs before calling business logic.
 
@@ -37,7 +36,6 @@ type TransferRequest struct {
 	Currency             string  `json:"currency" validate:"required,len=3"`
 }
 
-// --- Response DTOs ---
 
 // AccountResponse represents an account in API responses.
 type AccountResponse struct {
@@ -96,7 +94,6 @@ type ErrorResponse struct {
 	Code  string `json:"code"`
 }
 
-// --- Conversion helpers ---
 
 // FromAccount converts a domain account to API response.
 func FromAccount(a *account.Account) *AccountResponse {

@@ -17,6 +17,16 @@ test: ## Run tests
 	@echo "Running tests..."
 	@go test -v -race -cover ./...
 
+coverage: ## Run tests with coverage report
+	@echo "Running tests with coverage..."
+	@go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+	@go tool cover -func=coverage.out | grep total
+	@echo "\nGenerate HTML report with: make coverage-html"
+
+coverage-html: coverage ## Generate HTML coverage report
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated at coverage.html"
+
 test-integration: ## Run integration tests
 	@echo "Running integration tests..."
 	@go test -v -race -tags=integration ./tests/integration/...
