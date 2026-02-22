@@ -6,25 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cassiomorais/payments/internal/domain/outbox"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// OutboxEntry represents a transactional outbox record.
-type OutboxEntry struct {
-	ID            uuid.UUID
-	AggregateType string
-	AggregateID   uuid.UUID
-	EventType     string
-	Payload       map[string]interface{}
-	Status        string // pending, published, failed
-	RetryCount    int
-	MaxRetries    int
-	CreatedAt     time.Time
-	PublishedAt   *time.Time
-}
-
-// OutboxRepository manages the transactional outbox table.
+// OutboxRepository implements outbox.Repository using PostgreSQL.
 type OutboxRepository struct {
 	pool *pgxpool.Pool
 }
@@ -39,7 +26,7 @@ func (r *OutboxRepository) db(ctx context.Context) DBTX {
 }
 
 // Insert creates a new outbox entry (typically inside a transaction).
-func (r *OutboxRepository) Insert(ctx context.Context, entry *OutboxEntry) error {
+func (r *OutboxRepository) Insert(ctx context.Context, entry *outbox.Entry) error {
 	payload, err := json.Marshal(entry.Payload)
 	if err != nil {
 		return fmt.Errorf("marshal outbox payload: %w", err)
@@ -48,7 +35,7 @@ func (r *OutboxRepository) Insert(ctx context.Context, entry *OutboxEntry) error
 		`INSERT INTO outbox (id, aggregate_type, aggregate_id, event_type, payload, status, retry_count, max_retries, created_at)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		entry.ID, entry.AggregateType, entry.AggregateID, entry.EventType, payload,
-		entry.Status, entry.RetryCount, entry.MaxRetries, entry.CreatedAt,
+		string(entry.Status), entry.RetryCount, entry.MaxRetries, entry.CreatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("insert outbox entry: %w", err)
@@ -58,7 +45,7 @@ func (r *OutboxRepository) Insert(ctx context.Context, entry *OutboxEntry) error
 
 // GetPending returns pending outbox entries up to the given limit.
 // It uses SELECT ... FOR UPDATE SKIP LOCKED so multiple workers can poll concurrently.
-func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*OutboxEntry, error) {
+func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*outbox.Entry, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -74,13 +61,15 @@ func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*Outbox
 	}
 	defer rows.Close()
 
-	var entries []*OutboxEntry
+	var entries []*outbox.Entry
 	for rows.Next() {
-		e := &OutboxEntry{}
+		e := &outbox.Entry{}
 		var payload []byte
-		if err := rows.Scan(&e.ID, &e.AggregateType, &e.AggregateID, &e.EventType, &payload, &e.Status, &e.RetryCount, &e.MaxRetries, &e.CreatedAt, &e.PublishedAt); err != nil {
+		var status string
+		if err := rows.Scan(&e.ID, &e.AggregateType, &e.AggregateID, &e.EventType, &payload, &status, &e.RetryCount, &e.MaxRetries, &e.CreatedAt, &e.PublishedAt); err != nil {
 			return nil, fmt.Errorf("scan outbox entry: %w", err)
 		}
+		e.Status = outbox.Status(status)
 		if len(payload) > 0 {
 			e.Payload = make(map[string]interface{})
 			if err := json.Unmarshal(payload, &e.Payload); err != nil {
