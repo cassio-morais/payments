@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/cassiomorais/payments/internal/bootstrap"
-	"github.com/cassiomorais/payments/internal/handler"
+	"github.com/cassiomorais/payments/internal/controller"
 	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/service"
@@ -38,7 +38,7 @@ func main() {
 	paymentService := service.NewPaymentService(paymentRepo, accountRepo, outboxRepo, txManager, providerFactory)
 
 	// --- Build router ---
-	router := handler.NewRouter(handler.RouterDeps{
+	router := controller.NewRouter(controller.RouterDeps{
 		Pool:            app.Pool,
 		RedisClient:     app.Redis,
 		PaymentRepo:     paymentRepo,

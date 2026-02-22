@@ -30,7 +30,7 @@ A production-ready payment processing API demonstrating distributed systems patt
 ```
 ┌─────────────┐         ┌─────────────┐         ┌─────────────┐
 │             │         │             │         │             │
-│  Handlers   │────────▶│  Services   │────────▶│  Domain     │
+│ Controllers │────────▶│  Services   │────────▶│  Domain     │
 │  (HTTP)     │         │  (Business) │         │  Entities   │
 │             │         │             │         │             │
 └─────────────┘         └─────────────┘         └─────────────┘
@@ -70,8 +70,8 @@ A production-ready payment processing API demonstrating distributed systems patt
    - PostgreSQL repository implementations
    - Implements domain repository interfaces
 
-4. **Handler Layer** (`internal/handler/`)
-   - HTTP API handlers
+4. **Controller Layer** (`internal/controller/`)
+   - HTTP API controllers
    - DTOs and request validation
 
 5. **Infrastructure Layer** (`internal/infrastructure/`)

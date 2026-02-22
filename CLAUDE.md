@@ -29,7 +29,7 @@ Go payment processing API using **Service Layer Pattern** with simplified layeri
 1. **Domain** (`internal/domain/`) — Core entities (account, payment, outbox), value objects, repository interfaces, domain errors. No external dependencies. Domain defines all interfaces that other layers implement.
 2. **Service** (`internal/service/`) — Business logic layer with `AccountService` and `PaymentService`. Services orchestrate domain logic, manage transactions, and coordinate between repositories. Replaces the previous use-case pattern for better simplicity.
 3. **Repository** (`internal/repository/postgres/`) — Data access implementations using `pgx/v5`. Implements domain repository interfaces.
-4. **Handler** (`internal/handler/`) — HTTP handlers using `chi` router, DTOs, request validation.
+4. **Controller** (`internal/controller/`) — HTTP controllers using `chi` router, DTOs, request validation.
 5. **Middleware** (`internal/middleware/`) — HTTP middleware (idempotency, metrics, CORS).
 6. **Infrastructure** (`internal/infrastructure/`) — Cross-cutting concerns: config, observability (zerolog, OpenTelemetry, Prometheus), Redis (streams, locks).
 7. **Providers** (`internal/providers/`) — External payment provider integrations (Stripe, PayPal mocks).
@@ -62,7 +62,7 @@ Shared infrastructure initialization: config, logger, tracer, database pool, Red
 
 - **Test fixtures** — `internal/testutil/fixtures.go` provides `NewTestAccount()`, `NewTestPayment()`, `NewCompletedPayment()`.
 - **Mock implementations** — `internal/testutil/mocks.go` provides `MockPaymentRepository`, `MockAccountRepository`, `MockOutboxRepository`, `MockTransactionManager` with optional function overrides.
-- **Handler tests** — `internal/handler/*_test.go` cover request parsing, service integration, UUID validation, error mapping. Tests use service layer with mocked dependencies.
+- **Controller tests** — `internal/controller/*_test.go` cover request parsing, service integration, UUID validation, error mapping. Tests use service layer with mocked dependencies.
 - **Middleware tests** — `internal/middleware/idempotency_test.go`.
 
 ## Database
