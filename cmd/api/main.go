@@ -8,12 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	accountApp "github.com/cassiomorais/payments/internal/service"
-	paymentApp "github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/bootstrap"
-	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/handler"
 	"github.com/cassiomorais/payments/internal/provider"
-	appHTTP "github.com/cassiomorais/payments/internal/handler"
+	"github.com/cassiomorais/payments/internal/repository/postgres"
+	"github.com/cassiomorais/payments/internal/service"
 )
 
 func main() {
@@ -30,33 +29,24 @@ func main() {
 	accountRepo := postgres.NewAccountRepository(app.Pool)
 	paymentRepo := postgres.NewPaymentRepository(app.Pool)
 	outboxRepo := postgres.NewOutboxRepository(app.Pool)
-	outboxAdapter := postgres.NewOutboxAdapter(outboxRepo)
 	idempotencyRepo := postgres.NewIdempotencyRepository(app.Pool)
 	txManager := postgres.NewTxManager(app.Pool)
 
-	// --- Application services ---
-	providerFactory := providers.NewFactory()
-	createAccountUC := accountApp.NewCreateAccountUseCase(accountRepo)
-	getAccountUC := accountApp.NewGetAccountUseCase(accountRepo)
-	getBalanceUC := accountApp.NewGetBalanceUseCase(accountRepo)
-	getTransactionsUC := accountApp.NewGetTransactionsUseCase(accountRepo)
-	createPaymentUC := paymentApp.NewCreatePaymentUseCase(paymentRepo, accountRepo, outboxAdapter, txManager)
-	refundPaymentUC := paymentApp.NewRefundPaymentUseCase(paymentRepo, accountRepo, txManager, providerFactory)
+	// --- Services ---
+	providerFactory := provider.NewFactory()
+	accountService := service.NewAccountService(accountRepo)
+	paymentService := service.NewPaymentService(paymentRepo, accountRepo, outboxRepo, txManager, providerFactory)
 
 	// --- Build router ---
-	router := appHTTP.NewRouter(appHTTP.RouterDeps{
-		Pool:              app.Pool,
-		RedisClient:       app.Redis,
-		PaymentRepo:       paymentRepo,
-		CreateAccountUC:   createAccountUC,
-		GetAccountUC:      getAccountUC,
-		GetBalanceUC:      getBalanceUC,
-		GetTransactionsUC: getTransactionsUC,
-		CreatePaymentUC:   createPaymentUC,
-		RefundPaymentUC:   refundPaymentUC,
-		IdempotencyRepo:   idempotencyRepo,
-		Metrics:           app.Metrics,
-		CORSConfig:        app.Config.Server.CORS,
+	router := handler.NewRouter(handler.RouterDeps{
+		Pool:            app.Pool,
+		RedisClient:     app.Redis,
+		PaymentRepo:     paymentRepo,
+		AccountService:  accountService,
+		PaymentService:  paymentService,
+		IdempotencyRepo: idempotencyRepo,
+		Metrics:         app.Metrics,
+		CORSConfig:      app.Config.Server.CORS,
 	})
 
 	// --- HTTP server ---
