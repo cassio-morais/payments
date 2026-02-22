@@ -153,7 +153,7 @@ func (s *PaymentService) executeSync(ctx context.Context, p *payment.Payment) (*
 
 		// Add event
 		return s.paymentRepo.AddEvent(txCtx, &payment.PaymentEvent{
-			ID: uuid.New(), PaymentID: p.ID, EventType: "payment.completed",
+			ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCompleted),
 			EventData: map[string]interface{}{
 				"type":         string(p.PaymentType),
 				"amount_cents": p.Amount.ValueCents,
@@ -195,7 +195,7 @@ func (s *PaymentService) enqueueAsync(ctx context.Context, p *payment.Payment) (
 
 		// Add event
 		return s.paymentRepo.AddEvent(txCtx, &payment.PaymentEvent{
-			ID: uuid.New(), PaymentID: p.ID, EventType: "payment.created",
+			ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCreated),
 			EventData: map[string]interface{}{
 				"type":         string(p.PaymentType),
 				"amount_cents": p.Amount.ValueCents,
@@ -317,7 +317,7 @@ func (s *PaymentService) processExternalPayment(ctx context.Context, p *payment.
 
 	// Add event
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
-		ID: uuid.New(), PaymentID: p.ID, EventType: "payment.completed",
+		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentCompleted),
 		EventData: map[string]interface{}{
 			"provider_tx_id": txID,
 			"amount_cents":   p.Amount.ValueCents,
@@ -336,7 +336,7 @@ func (s *PaymentService) failPayment(ctx context.Context, p *payment.Payment, re
 		return err
 	}
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
-		ID: uuid.New(), PaymentID: p.ID, EventType: "payment.failed",
+		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentFailed),
 		EventData: map[string]interface{}{"error": reason},
 	})
 	return domainErrors.NewDomainError("payment_failed", reason, nil)
@@ -410,7 +410,7 @@ func (s *PaymentService) RefundPayment(ctx context.Context, paymentID uuid.UUID)
 	}
 
 	s.paymentRepo.AddEvent(ctx, &payment.PaymentEvent{
-		ID: uuid.New(), PaymentID: p.ID, EventType: "payment.refunded",
+		ID: uuid.New(), PaymentID: p.ID, EventType: string(payment.EventPaymentRefunded),
 		EventData: map[string]interface{}{"amount_cents": p.Amount.ValueCents},
 	})
 

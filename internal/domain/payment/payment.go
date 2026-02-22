@@ -36,6 +36,16 @@ const (
 	ProviderPayPal Provider = "paypal"
 )
 
+// EventType represents payment event types
+type EventType string
+
+const (
+	EventPaymentCreated   EventType = "payment.created"
+	EventPaymentCompleted EventType = "payment.completed"
+	EventPaymentFailed    EventType = "payment.failed"
+	EventPaymentRefunded  EventType = "payment.refunded"
+)
+
 // Payment represents a payment entity
 type Payment struct {
 	ID                     uuid.UUID
