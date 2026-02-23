@@ -33,8 +33,10 @@ type RouterDeps struct {
 func NewRouter(deps RouterDeps) *chi.Mux {
 	r := chi.NewRouter()
 
+	// Global middleware
 	r.Use(chimw.RequestID)
 	r.Use(customMW.Tracing())
+	r.Use(customMW.SecurityHeaders()) // Security headers
 	r.Use(chimw.RealIP)
 	r.Use(chimw.Logger)
 	r.Use(chimw.Recoverer)
@@ -53,14 +55,23 @@ func NewRouter(deps RouterDeps) *chi.Mux {
 	accountH := NewAccountController(deps.AccountService, deps.AuthzService)
 	paymentH := NewPaymentController(deps.PaymentService, deps.PaymentRepo, deps.AuthzService)
 
+	// Public routes (no auth)
 	r.Get("/health", healthH.Health)
 	r.Get("/health/live", healthH.Liveness)
 	r.Get("/health/ready", healthH.Readiness)
 
-	r.Handle("/metrics", promhttp.Handler())
+	// Metrics endpoint (protected with auth)
+	r.Route("/internal", func(r chi.Router) {
+		r.Use(customMW.RequireAuth(deps.JWTSecret))
+		r.Handle("/metrics", promhttp.Handler())
+	})
 
+	// Protected API routes
 	r.Route("/api/v1", func(r chi.Router) {
-		// Idempotency middleware for mutating endpoints.
+		r.Use(customMW.RequireAuth(deps.JWTSecret)) // Require authentication
+		r.Use(customMW.RateLimit(100))              // Global rate limit: 100 req/min
+
+		// Idempotency middleware for mutating endpoints
 		idempotencyMW := customMW.Idempotency(deps.IdempotencyRepo)
 
 		// Accounts
@@ -69,15 +80,15 @@ func NewRouter(deps RouterDeps) *chi.Mux {
 		r.Get("/accounts/{id}/balance", accountH.GetBalance)
 		r.Get("/accounts/{id}/transactions", accountH.GetTransactions)
 
-		// Payments
-		r.With(idempotencyMW).Post("/payments", paymentH.CreatePayment)
+		// Payments - stricter rate limits (10/min)
+		r.With(idempotencyMW, customMW.RateLimit(10)).Post("/payments", paymentH.CreatePayment)
 		r.Get("/payments/{id}", paymentH.GetPayment)
 		r.Get("/payments", paymentH.ListPayments)
 		r.Post("/payments/{id}/refund", paymentH.RefundPayment)
 		r.Post("/payments/{id}/cancel", paymentH.CancelPayment)
 
-		// Transfers
-		r.With(idempotencyMW).Post("/transfers", paymentH.Transfer)
+		// Transfers - stricter rate limits (10/min)
+		r.With(idempotencyMW, customMW.RateLimit(10)).Post("/transfers", paymentH.Transfer)
 	})
 
 	return r
