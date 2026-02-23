@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -15,6 +16,7 @@ type Config struct {
 	Payment       PaymentConfig       `mapstructure:"payment"`
 	Worker        WorkerConfig        `mapstructure:"worker"`
 	Observability ObservabilityConfig `mapstructure:"observability"`
+	Auth          AuthConfig          `mapstructure:"auth"`
 	InstanceID    string              `mapstructure:"instance_id"`
 }
 
@@ -22,13 +24,27 @@ type ServerConfig struct {
 	Port            int           `mapstructure:"port"`
 	ReadTimeout     time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout    time.Duration `mapstructure:"write_timeout"`
+	IdleTimeout     time.Duration `mapstructure:"idle_timeout"`
 	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
 	CORS            CORSConfig    `mapstructure:"cors"`
+	TLS             TLSConfig     `mapstructure:"tls"`
 }
 
 type CORSConfig struct {
 	AllowedOrigins   []string `mapstructure:"allowed_origins"`
 	AllowCredentials bool     `mapstructure:"allow_credentials"`
+}
+
+type TLSConfig struct {
+	Enabled    bool   `mapstructure:"enabled"`
+	CertFile   string `mapstructure:"cert_file"`
+	KeyFile    string `mapstructure:"key_file"`
+	MinVersion string `mapstructure:"min_version"` // "1.2" or "1.3"
+}
+
+type AuthConfig struct {
+	JWTSecret string        `mapstructure:"jwt_secret"`
+	JWTExpiry time.Duration `mapstructure:"jwt_expiry"`
 }
 
 type DatabaseConfig struct {
@@ -141,6 +157,52 @@ func (c *Config) Validate() error {
 		errs = append(errs, fmt.Errorf("worker.batch_size must be positive"))
 	}
 
+	// TLS validation
+	if c.Server.TLS.Enabled {
+		if c.Server.TLS.CertFile == "" {
+			errs = append(errs, fmt.Errorf("server.tls.cert_file required when TLS enabled"))
+		}
+		if c.Server.TLS.KeyFile == "" {
+			errs = append(errs, fmt.Errorf("server.tls.key_file required when TLS enabled"))
+		}
+
+		// Verify files exist
+		if c.Server.TLS.CertFile != "" {
+			if _, err := os.Stat(c.Server.TLS.CertFile); err != nil {
+				errs = append(errs, fmt.Errorf("server.tls.cert_file not found: %w", err))
+			}
+		}
+		if c.Server.TLS.KeyFile != "" {
+			if _, err := os.Stat(c.Server.TLS.KeyFile); err != nil {
+				errs = append(errs, fmt.Errorf("server.tls.key_file not found: %w", err))
+			}
+		}
+
+		// Validate min_version
+		if c.Server.TLS.MinVersion != "1.2" && c.Server.TLS.MinVersion != "1.3" {
+			errs = append(errs, fmt.Errorf("server.tls.min_version must be '1.2' or '1.3', got '%s'", c.Server.TLS.MinVersion))
+		}
+	}
+
+	// Production environment checks
+	env := os.Getenv("ENV")
+	if env == "production" || env == "prod" {
+		if c.Database.Password == "" {
+			errs = append(errs, fmt.Errorf("database.password required in production"))
+		}
+		if c.Auth.JWTSecret == "" {
+			errs = append(errs, fmt.Errorf("auth.jwt_secret required in production"))
+		}
+		if !c.Server.TLS.Enabled {
+			errs = append(errs, fmt.Errorf("server.tls.enabled must be true in production"))
+		}
+	}
+
+	// JWT secret length validation
+	if c.Auth.JWTSecret != "" && len(c.Auth.JWTSecret) < 32 {
+		errs = append(errs, fmt.Errorf("auth.jwt_secret must be at least 32 characters"))
+	}
+
 	return errors.Join(errs...)
 }
 
@@ -149,15 +211,17 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.port", 8080)
 	v.SetDefault("server.read_timeout", "15s")
 	v.SetDefault("server.write_timeout", "15s")
+	v.SetDefault("server.idle_timeout", "120s")
 	v.SetDefault("server.shutdown_timeout", "30s")
 	v.SetDefault("server.cors.allowed_origins", []string{"*"})
 	v.SetDefault("server.cors.allow_credentials", false)
+	v.SetDefault("server.tls.enabled", false)
+	v.SetDefault("server.tls.min_version", "1.3")
 
 	// Database defaults
 	v.SetDefault("database.host", "localhost")
 	v.SetDefault("database.port", 5432)
 	v.SetDefault("database.user", "payments")
-	v.SetDefault("database.password", "payments")
 	v.SetDefault("database.database", "payments")
 	v.SetDefault("database.max_connections", 25)
 	v.SetDefault("database.min_connections", 5)
@@ -168,7 +232,6 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("redis.host", "localhost")
 	v.SetDefault("redis.port", 6379)
 	v.SetDefault("redis.db", 0)
-	v.SetDefault("redis.password", "")
 	v.SetDefault("redis.connect_retries", 5)
 	v.SetDefault("redis.connect_retry_delay", "1s")
 
@@ -192,6 +255,9 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("observability.jaeger_endpoint", "http://localhost:14268/api/traces")
 	v.SetDefault("observability.enable_metrics", true)
 	v.SetDefault("observability.enable_tracing", true)
+
+	// Auth defaults
+	v.SetDefault("auth.jwt_expiry", "24h")
 
 	// Instance ID
 	v.SetDefault("instance_id", "payments-1")
