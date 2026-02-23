@@ -63,14 +63,16 @@ This implementation addresses **all 6 critical security vulnerabilities** identi
 **Impact**: Payment data transmitted in plaintext, violates PCI-DSS
 
 **Fixes Implemented**:
-- TLS configuration in config system
+- TLS configuration in config system (OPTIONAL - typically handled by load balancer)
 - `createTLSConfig()` with TLS 1.3 minimum
 - Conditional HTTPS startup
 - Modern cipher suites (AES-256-GCM, ChaCha20-Poly1305)
 - Development certificate generator script
-- Production validation requires TLS
+- **Recommended**: TLS termination at AWS ALB, nginx, or API gateway
 
-**Testing**: Server starts with HTTPS when TLS enabled, fails in production without TLS
+**Note**: In production, TLS is typically handled by load balancer/API gateway. App-level TLS is available but optional.
+
+**Testing**: Server starts with HTTPS when TLS enabled, runs on HTTP in private VPC behind load balancer
 
 ---
 

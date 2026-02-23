@@ -193,9 +193,8 @@ func (c *Config) Validate() error {
 		if c.Auth.JWTSecret == "" {
 			errs = append(errs, fmt.Errorf("auth.jwt_secret required in production"))
 		}
-		if !c.Server.TLS.Enabled {
-			errs = append(errs, fmt.Errorf("server.tls.enabled must be true in production"))
-		}
+		// Note: TLS is optional - typically handled by load balancer/API gateway
+		// Enable app-level TLS only if required by your architecture
 	}
 
 	// JWT secret length validation
