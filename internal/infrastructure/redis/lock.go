@@ -30,7 +30,6 @@ var (
 	`)
 )
 
-// DistributedLock represents a distributed lock using Redis
 type DistributedLock struct {
 	client  *redis.Client
 	key     string
@@ -39,7 +38,6 @@ type DistributedLock struct {
 	acquired bool
 }
 
-// NewDistributedLock creates a new distributed lock
 func NewDistributedLock(client *redis.Client, key string, ttl time.Duration) *DistributedLock {
 	return &DistributedLock{
 		client:   client,
@@ -50,7 +48,6 @@ func NewDistributedLock(client *redis.Client, key string, ttl time.Duration) *Di
 	}
 }
 
-// Acquire attempts to acquire the lock
 func (l *DistributedLock) Acquire(ctx context.Context) (bool, error) {
 	// Use SET NX EX to atomically set the lock if it doesn't exist
 	success, err := l.client.SetNX(ctx, l.key, l.value, l.ttl).Result()
@@ -135,7 +132,6 @@ func (l *DistributedLock) Release(ctx context.Context) error {
 	return nil
 }
 
-// IsAcquired returns whether the lock is acquired
 func (l *DistributedLock) IsAcquired() bool {
 	return l.acquired
 }

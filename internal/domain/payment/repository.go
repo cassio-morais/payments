@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository defines the interface for payment persistence
 type Repository interface {
 	// Create creates a new payment
 	Create(ctx context.Context, payment *Payment) error
@@ -31,7 +30,6 @@ type Repository interface {
 	GetEvents(ctx context.Context, paymentID uuid.UUID) ([]*PaymentEvent, error)
 }
 
-// ListFilter defines filters for listing payments
 type ListFilter struct {
 	AccountID *uuid.UUID
 	Status    *PaymentStatus
@@ -42,7 +40,6 @@ type ListFilter struct {
 	SortOrder string
 }
 
-// PaymentEvent represents an event in the payment lifecycle
 type PaymentEvent struct {
 	ID        uuid.UUID
 	PaymentID uuid.UUID

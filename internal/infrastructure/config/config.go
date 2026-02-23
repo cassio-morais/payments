@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Config holds all application configuration
 type Config struct {
 	Server        ServerConfig        `mapstructure:"server"`
 	Database      DatabaseConfig      `mapstructure:"database"`
@@ -19,7 +18,6 @@ type Config struct {
 	InstanceID    string              `mapstructure:"instance_id"`
 }
 
-// ServerConfig holds HTTP server configuration
 type ServerConfig struct {
 	Port            int           `mapstructure:"port"`
 	ReadTimeout     time.Duration `mapstructure:"read_timeout"`
@@ -28,13 +26,11 @@ type ServerConfig struct {
 	CORS            CORSConfig    `mapstructure:"cors"`
 }
 
-// CORSConfig holds CORS configuration
 type CORSConfig struct {
 	AllowedOrigins   []string `mapstructure:"allowed_origins"`
 	AllowCredentials bool     `mapstructure:"allow_credentials"`
 }
 
-// DatabaseConfig holds PostgreSQL configuration
 type DatabaseConfig struct {
 	Host            string        `mapstructure:"host"`
 	Port            int           `mapstructure:"port"`
@@ -47,7 +43,6 @@ type DatabaseConfig struct {
 	SSLMode         string        `mapstructure:"ssl_mode"`
 }
 
-// RedisConfig holds Redis configuration
 type RedisConfig struct {
 	Host              string        `mapstructure:"host"`
 	Port              int           `mapstructure:"port"`
@@ -57,7 +52,6 @@ type RedisConfig struct {
 	ConnectRetryDelay time.Duration `mapstructure:"connect_retry_delay"`
 }
 
-// PaymentConfig holds payment processing configuration
 type PaymentConfig struct {
 	MaxRetries              int           `mapstructure:"max_retries"`
 	RetryDelay              time.Duration `mapstructure:"retry_delay"`
@@ -67,7 +61,6 @@ type PaymentConfig struct {
 	CircuitBreakerTimeout   time.Duration `mapstructure:"circuit_breaker_timeout"`
 }
 
-// WorkerConfig holds worker processing configuration
 type WorkerConfig struct {
 	BatchSize        int64         `mapstructure:"batch_size"`
 	BlockDuration    time.Duration `mapstructure:"block_duration"`
@@ -76,7 +69,6 @@ type WorkerConfig struct {
 	IdempotencyTTL   time.Duration `mapstructure:"idempotency_ttl"`
 }
 
-// ObservabilityConfig holds logging and tracing configuration
 type ObservabilityConfig struct {
 	LogLevel       string `mapstructure:"log_level"`
 	JaegerEndpoint string `mapstructure:"jaeger_endpoint"`
@@ -84,7 +76,6 @@ type ObservabilityConfig struct {
 	EnableTracing  bool   `mapstructure:"enable_tracing"`
 }
 
-// Load reads configuration from environment variables and config files
 func Load() (*Config, error) {
 	v := viper.New()
 
@@ -122,7 +113,6 @@ func Load() (*Config, error) {
 	return &cfg, nil
 }
 
-// Validate checks that required configuration fields have valid values.
 func (c *Config) Validate() error {
 	var errs []error
 
@@ -207,7 +197,6 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("instance_id", "payments-1")
 }
 
-// DatabaseDSN returns the PostgreSQL connection string
 func (c *DatabaseConfig) DatabaseDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
@@ -215,7 +204,6 @@ func (c *DatabaseConfig) DatabaseDSN() string {
 	)
 }
 
-// RedisAddr returns the Redis address
 func (c *RedisConfig) RedisAddr() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }

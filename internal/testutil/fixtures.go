@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// NewTestAccount creates a test account with sensible defaults.
 func NewTestAccount(userID string, balanceCents int64, currency string) *account.Account {
 	now := time.Now()
 	return &account.Account{
@@ -23,7 +22,6 @@ func NewTestAccount(userID string, balanceCents int64, currency string) *account
 	}
 }
 
-// NewTestPayment creates a pending test payment with sensible defaults.
 func NewTestPayment(
 	paymentType payment.PaymentType,
 	sourceID *uuid.UUID,
@@ -48,7 +46,6 @@ func NewTestPayment(
 	}
 }
 
-// NewCompletedPayment creates a completed test payment.
 func NewCompletedPayment(
 	paymentType payment.PaymentType,
 	sourceID *uuid.UUID,
@@ -63,7 +60,6 @@ func NewCompletedPayment(
 	return p
 }
 
-// UUIDPtr returns a pointer to the UUID.
 func UUIDPtr(id uuid.UUID) *uuid.UUID {
 	return &id
 }

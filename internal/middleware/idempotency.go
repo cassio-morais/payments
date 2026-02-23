@@ -8,15 +8,13 @@ import (
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 )
 
-const maxIdempotencyBodySize = 1 << 20 // 1MB
+const maxIdempotencyBodySize = 1 << 20
 
-// Idempotency is middleware that caches responses by Idempotency-Key header.
 func Idempotency(idempotencyRepo *postgres.IdempotencyRepository) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			key := r.Header.Get("Idempotency-Key")
 			if key == "" {
-				// No idempotency key — pass through.
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -30,11 +28,9 @@ func Idempotency(idempotencyRepo *postgres.IdempotencyRepository) func(http.Hand
 				return
 			}
 
-			// Wrap the response writer to capture the response.
 			rec := &responseRecorder{ResponseWriter: w, body: &bytes.Buffer{}, statusCode: http.StatusOK}
 			next.ServeHTTP(rec, r)
 
-			// Cache the response (only for success/client-error status codes, and if body not too large).
 			if rec.statusCode >= 200 && rec.statusCode < 500 && rec.body.Len() <= maxIdempotencyBodySize {
 				now := time.Now()
 				idempotencyRepo.Set(r.Context(), &postgres.IdempotencyEntry{
@@ -49,7 +45,6 @@ func Idempotency(idempotencyRepo *postgres.IdempotencyRepository) func(http.Hand
 	}
 }
 
-// responseRecorder captures the response status code and body.
 type responseRecorder struct {
 	http.ResponseWriter
 	statusCode    int

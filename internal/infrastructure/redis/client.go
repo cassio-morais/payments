@@ -9,7 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// NewClient creates a new Redis client with configurable retry logic
 func NewClient(ctx context.Context, cfg *config.RedisConfig) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:         cfg.RedisAddr(),

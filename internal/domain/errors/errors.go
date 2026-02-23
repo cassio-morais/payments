@@ -59,7 +59,6 @@ func (e *DomainError) Unwrap() error {
 	return e.Err
 }
 
-// NewDomainError creates a new domain error
 func NewDomainError(code, message string, err error) *DomainError {
 	return &DomainError{
 		Code:    code,
@@ -68,7 +67,6 @@ func NewDomainError(code, message string, err error) *DomainError {
 	}
 }
 
-// ValidationError represents a validation error
 type ValidationError struct {
 	Field   string
 	Message string
@@ -78,7 +76,6 @@ func (e *ValidationError) Error() string {
 	return fmt.Sprintf("validation failed for field %s: %s", e.Field, e.Message)
 }
 
-// NewValidationError creates a new validation error
 func NewValidationError(field, message string) *ValidationError {
 	return &ValidationError{
 		Field:   field,

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// PaymentType represents the type of payment
 type PaymentType string
 
 const (
@@ -16,7 +15,6 @@ const (
 	ExternalPayment  PaymentType = "external_payment"
 )
 
-// PaymentStatus represents the payment status in the state machine
 type PaymentStatus string
 
 const (
@@ -28,7 +26,6 @@ const (
 	StatusRefunded   PaymentStatus = "refunded"
 )
 
-// Provider represents the external payment provider
 type Provider string
 
 const (
@@ -36,7 +33,6 @@ const (
 	ProviderPayPal Provider = "paypal"
 )
 
-// EventType represents payment event types
 type EventType string
 
 const (
@@ -46,7 +42,6 @@ const (
 	EventPaymentRefunded  EventType = "payment.refunded"
 )
 
-// Payment represents a payment entity
 type Payment struct {
 	ID                     uuid.UUID
 	IdempotencyKey         string
@@ -68,13 +63,11 @@ type Payment struct {
 	CompletedAt            *time.Time
 }
 
-// Amount represents a monetary amount in the smallest currency unit (e.g. cents).
 type Amount struct {
 	ValueCents int64
 	Currency   string
 }
 
-// String returns a human-readable representation of the amount.
 func (a Amount) String() string {
 	whole := a.ValueCents / 100
 	frac := a.ValueCents % 100
@@ -84,12 +77,10 @@ func (a Amount) String() string {
 	return fmt.Sprintf("%d.%02d %s", whole, frac, a.Currency)
 }
 
-// Validate checks that the amount is valid.
 func (a Amount) Validate() error {
 	return validateAmount(a)
 }
 
-// NewPayment creates a new payment
 func NewPayment(
 	idempotencyKey string,
 	paymentType PaymentType,
@@ -123,7 +114,6 @@ func NewPayment(
 	}, nil
 }
 
-// CanTransitionTo checks if the payment can transition to the given status
 func (p *Payment) CanTransitionTo(newStatus PaymentStatus) bool {
 	transitions := map[PaymentStatus][]PaymentStatus{
 		StatusPending: {
@@ -158,7 +148,6 @@ func (p *Payment) CanTransitionTo(newStatus PaymentStatus) bool {
 	return false
 }
 
-// TransitionTo transitions the payment to a new status
 func (p *Payment) TransitionTo(newStatus PaymentStatus) error {
 	if !p.CanTransitionTo(newStatus) {
 		return errors.NewDomainError(
@@ -179,12 +168,10 @@ func (p *Payment) TransitionTo(newStatus PaymentStatus) error {
 	return nil
 }
 
-// MarkProcessing transitions the payment to processing status
 func (p *Payment) MarkProcessing() error {
 	return p.TransitionTo(StatusProcessing)
 }
 
-// MarkCompleted transitions the payment to completed status
 func (p *Payment) MarkCompleted(providerTxID *string) error {
 	if err := p.TransitionTo(StatusCompleted); err != nil {
 		return err
@@ -195,7 +182,6 @@ func (p *Payment) MarkCompleted(providerTxID *string) error {
 	return nil
 }
 
-// MarkFailed transitions the payment to failed status
 func (p *Payment) MarkFailed(errorMsg string) error {
 	if err := p.TransitionTo(StatusFailed); err != nil {
 		return err
@@ -204,17 +190,14 @@ func (p *Payment) MarkFailed(errorMsg string) error {
 	return nil
 }
 
-// MarkCancelled transitions the payment to cancelled status
 func (p *Payment) MarkCancelled() error {
 	return p.TransitionTo(StatusCancelled)
 }
 
-// MarkRefunded transitions the payment to refunded status
 func (p *Payment) MarkRefunded() error {
 	return p.TransitionTo(StatusRefunded)
 }
 
-// IncrementRetry increments the retry counter
 func (p *Payment) IncrementRetry() error {
 	if p.RetryCount >= p.MaxRetries {
 		return errors.ErrMaxRetriesExceeded
@@ -224,19 +207,16 @@ func (p *Payment) IncrementRetry() error {
 	return nil
 }
 
-// CanRetry checks if the payment can be retried
 func (p *Payment) CanRetry() bool {
 	return p.Status == StatusFailed && p.RetryCount < p.MaxRetries
 }
 
-// IsTerminal checks if the payment is in a terminal state
 func (p *Payment) IsTerminal() bool {
 	return p.Status == StatusCompleted ||
 		p.Status == StatusCancelled ||
 		p.Status == StatusRefunded
 }
 
-// SetProvider sets the payment provider
 func (p *Payment) SetProvider(provider Provider) {
 	p.Provider = &provider
 }

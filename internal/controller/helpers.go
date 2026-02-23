@@ -13,14 +13,12 @@ import (
 
 var validate = validator.New()
 
-// errorMapping maps a domain error to an HTTP status code and error code.
 type errorMapping struct {
 	err    error
 	status int
 	code   string
 }
 
-// errorMappings is an ordered registry of domain errors to HTTP responses.
 var errorMappings = []errorMapping{
 	{domainErrors.ErrAccountNotFound, http.StatusNotFound, "not_found"},
 	{domainErrors.ErrPaymentNotFound, http.StatusNotFound, "not_found"},
@@ -33,14 +31,12 @@ var errorMappings = []errorMapping{
 	{domainErrors.ErrProviderUnavailable, http.StatusServiceUnavailable, "provider_unavailable"},
 }
 
-// writeJSON writes a JSON response.
 func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(v)
 }
 
-// writeError maps domain errors to HTTP error responses.
 func writeError(w http.ResponseWriter, err error) {
 	resp := ErrorResponse{Error: err.Error()}
 
@@ -69,14 +65,12 @@ func writeError(w http.ResponseWriter, err error) {
 		return
 	}
 
-	// Fallback: internal server error.
 	log.Error().Err(err).Msg("unhandled error in handler")
 	resp.Code = "internal_error"
 	resp.Error = "internal server error"
 	writeJSON(w, http.StatusInternalServerError, resp)
 }
 
-// decodeAndValidate decodes JSON body into dst and validates it.
 func decodeAndValidate(r *http.Request, dst any) error {
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
 		return domainErrors.NewValidationError("body", "invalid JSON: "+err.Error())

@@ -17,7 +17,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RouterDeps holds all dependencies needed to build the router.
 type RouterDeps struct {
 	Pool            *pgxpool.Pool
 	RedisClient     *redis.Client
@@ -29,7 +28,6 @@ type RouterDeps struct {
 	CORSConfig      config.CORSConfig
 }
 
-// NewRouter creates a fully configured chi router.
 func NewRouter(deps RouterDeps) *chi.Mux {
 	r := chi.NewRouter()
 

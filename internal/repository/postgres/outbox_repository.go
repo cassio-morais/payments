@@ -11,12 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// OutboxRepository implements outbox.Repository using PostgreSQL.
 type OutboxRepository struct {
 	pool *pgxpool.Pool
 }
 
-// NewOutboxRepository creates a new OutboxRepository.
 func NewOutboxRepository(pool *pgxpool.Pool) *OutboxRepository {
 	return &OutboxRepository{pool: pool}
 }
@@ -25,7 +23,6 @@ func (r *OutboxRepository) db(ctx context.Context) DBTX {
 	return ConnFromCtx(ctx, r.pool)
 }
 
-// Insert creates a new outbox entry (typically inside a transaction).
 func (r *OutboxRepository) Insert(ctx context.Context, entry *outbox.Entry) error {
 	payload, err := json.Marshal(entry.Payload)
 	if err != nil {
@@ -43,8 +40,6 @@ func (r *OutboxRepository) Insert(ctx context.Context, entry *outbox.Entry) erro
 	return nil
 }
 
-// GetPending returns pending outbox entries up to the given limit.
-// It uses SELECT ... FOR UPDATE SKIP LOCKED so multiple workers can poll concurrently.
 func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*outbox.Entry, error) {
 	if limit <= 0 {
 		limit = 10
@@ -81,7 +76,6 @@ func (r *OutboxRepository) GetPending(ctx context.Context, limit int) ([]*outbox
 	return entries, rows.Err()
 }
 
-// MarkPublished marks an outbox entry as published.
 func (r *OutboxRepository) MarkPublished(ctx context.Context, id uuid.UUID) error {
 	now := time.Now()
 	_, err := r.db(ctx).Exec(ctx,
@@ -93,7 +87,6 @@ func (r *OutboxRepository) MarkPublished(ctx context.Context, id uuid.UUID) erro
 	return nil
 }
 
-// MarkFailed marks an outbox entry as failed and increments retry count.
 func (r *OutboxRepository) MarkFailed(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db(ctx).Exec(ctx,
 		`UPDATE outbox SET retry_count = retry_count + 1,

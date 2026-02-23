@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// InitLogger creates a configured logger without mutating global state.
 func InitLogger(level string, output io.Writer) zerolog.Logger {
 	if output == nil {
 		output = os.Stdout
@@ -41,7 +40,6 @@ func parseLogLevel(level string) zerolog.Level {
 	}
 }
 
-// WithContext creates a logger with context values
 func WithContext(logger zerolog.Logger, ctx map[string]any) zerolog.Logger {
 	l := logger.With()
 	for k, v := range ctx {

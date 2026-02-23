@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Entry represents a transactional outbox record for reliable event publishing.
 type Entry struct {
 	ID            uuid.UUID
 	AggregateType string
@@ -20,7 +19,6 @@ type Entry struct {
 	PublishedAt   *time.Time
 }
 
-// Status represents the outbox entry status.
 type Status string
 
 const (
@@ -29,7 +27,6 @@ const (
 	StatusFailed    Status = "failed"
 )
 
-// NewEntry creates a new outbox entry in pending status.
 func NewEntry(aggregateType string, aggregateID uuid.UUID, eventType string, payload map[string]any) *Entry {
 	return &Entry{
 		ID:            uuid.New(),

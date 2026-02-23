@@ -4,7 +4,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// Metrics holds all application metrics
 type Metrics struct {
 	// Payment metrics
 	PaymentsTotal          *prometheus.CounterVec
@@ -30,7 +29,6 @@ type Metrics struct {
 	WorkerProcessingDuration *prometheus.HistogramVec
 }
 
-// NewMetrics creates and registers all metrics against the given registry.
 // If reg is nil, prometheus.DefaultRegisterer is used.
 func NewMetrics(namespace string, reg prometheus.Registerer) *Metrics {
 	if reg == nil {

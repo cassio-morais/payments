@@ -8,11 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Tracing wraps the handler with OpenTelemetry HTTP instrumentation.
-// Spans are automatically named with the HTTP method and chi route pattern
-// (e.g., "GET /api/v1/accounts/{id}", "POST /api/v1/payments").
-// This creates per-endpoint metrics instead of lumping all requests under one name.
-// Spans are exported to Jaeger when tracing is enabled in config (observability.enable_tracing=true).
 func Tracing() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

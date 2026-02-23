@@ -10,13 +10,11 @@ import (
 	"github.com/google/uuid"
 )
 
-// PaymentController handles payment-related HTTP requests.
 type PaymentController struct {
 	paymentService *service.PaymentService
 	paymentRepo    payment.Repository
 }
 
-// NewPaymentController creates a new PaymentController.
 func NewPaymentController(
 	paymentService *service.PaymentService,
 	paymentRepo payment.Repository,
@@ -27,7 +25,6 @@ func NewPaymentController(
 	}
 }
 
-// CreatePayment handles POST /api/v1/payments
 func (h *PaymentController) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	var req CreatePaymentRequest
 	if err := decodeAndValidate(r, &req); err != nil {
@@ -82,7 +79,6 @@ func (h *PaymentController) CreatePayment(w http.ResponseWriter, r *http.Request
 	writeJSON(w, status, FromPayment(resp.Payment))
 }
 
-// GetPayment handles GET /api/v1/payments/{id}
 func (h *PaymentController) GetPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -99,7 +95,6 @@ func (h *PaymentController) GetPayment(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
-// ListPayments handles GET /api/v1/payments
 func (h *PaymentController) ListPayments(w http.ResponseWriter, r *http.Request) {
 	filter := payment.ListFilter{}
 
@@ -135,7 +130,6 @@ func (h *PaymentController) ListPayments(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// RefundPayment handles POST /api/v1/payments/{id}/refund
 func (h *PaymentController) RefundPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -152,7 +146,6 @@ func (h *PaymentController) RefundPayment(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
-// CancelPayment handles POST /api/v1/payments/{id}/cancel
 func (h *PaymentController) CancelPayment(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -178,7 +171,6 @@ func (h *PaymentController) CancelPayment(w http.ResponseWriter, r *http.Request
 	writeJSON(w, http.StatusOK, FromPayment(p))
 }
 
-// Transfer handles POST /api/v1/transfers
 func (h *PaymentController) Transfer(w http.ResponseWriter, r *http.Request) {
 	var req TransferRequest
 	if err := decodeAndValidate(r, &req); err != nil {

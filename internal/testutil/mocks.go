@@ -11,7 +11,6 @@ import (
 )
 
 
-// MockPaymentRepository is a mock implementation of payment.Repository.
 type MockPaymentRepository struct {
 	mu       sync.Mutex
 	payments map[uuid.UUID]*payment.Payment
@@ -115,7 +114,6 @@ func (m *MockPaymentRepository) GetEvents(ctx context.Context, paymentID uuid.UU
 }
 
 
-// MockAccountRepository is a mock implementation of account.Repository.
 type MockAccountRepository struct {
 	mu           sync.Mutex
 	accounts     map[uuid.UUID]*account.Account
@@ -231,7 +229,6 @@ func (m *MockAccountRepository) Lock(ctx context.Context, id uuid.UUID) (*accoun
 	return acct, nil
 }
 
-// GetAccountByID returns the stored account (test helper, no context needed).
 func (m *MockAccountRepository) GetAccountByID(id uuid.UUID) *account.Account {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -239,7 +236,6 @@ func (m *MockAccountRepository) GetAccountByID(id uuid.UUID) *account.Account {
 }
 
 
-// MockTransactionManager is a mock implementation of TransactionManager.
 type MockTransactionManager struct {
 	WithTransactionFunc func(ctx context.Context, fn func(ctx context.Context) error) error
 }
@@ -256,7 +252,6 @@ func (m *MockTransactionManager) WithTransaction(ctx context.Context, fn func(ct
 }
 
 
-// MockOutboxRepository is a mock implementation of outbox.Repository.
 type MockOutboxRepository struct {
 	InsertFunc        func(ctx context.Context, entry *outbox.Entry) error
 	GetPendingFunc    func(ctx context.Context, limit int) ([]*outbox.Entry, error)

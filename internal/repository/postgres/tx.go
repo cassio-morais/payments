@@ -14,24 +14,20 @@ type ctxKey int
 
 const txKey ctxKey = iota
 
-// DBTX is the common query interface satisfied by both *pgxpool.Pool and pgx.Tx.
 type DBTX interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
-// TxManager implements transaction management with context propagation.
 type TxManager struct {
 	pool *pgxpool.Pool
 }
 
-// NewTxManager creates a new transaction manager.
 func NewTxManager(pool *pgxpool.Pool) *TxManager {
 	return &TxManager{pool: pool}
 }
 
-// WithTransaction executes fn inside a database transaction.
 // The transaction is committed if fn returns nil, rolled back otherwise.
 func (m *TxManager) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	tx, err := m.pool.Begin(ctx)
@@ -54,7 +50,6 @@ func (m *TxManager) WithTransaction(ctx context.Context, fn func(ctx context.Con
 	return nil
 }
 
-// ConnFromCtx returns the transaction from context if present, otherwise the pool.
 func ConnFromCtx(ctx context.Context, pool *pgxpool.Pool) DBTX {
 	if tx, ok := ctx.Value(txKey).(pgx.Tx); ok {
 		return tx

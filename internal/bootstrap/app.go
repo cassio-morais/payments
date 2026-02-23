@@ -14,7 +14,6 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// App holds the shared infrastructure dependencies used by both API and worker.
 type App struct {
 	Config  *config.Config
 	Logger  zerolog.Logger
@@ -23,7 +22,6 @@ type App struct {
 	Metrics *observability.Metrics
 }
 
-// New initializes all shared infrastructure: config, logger, tracer, DB, Redis, metrics.
 func New(ctx context.Context, serviceName string, metricsNamespace string) (*App, error) {
 	cfg, err := config.Load()
 	if err != nil {
@@ -38,7 +36,6 @@ func New(ctx context.Context, serviceName string, metricsNamespace string) (*App
 		if err != nil {
 			logger.Warn().Err(err).Msg("Failed to initialize tracer, continuing without tracing")
 		} else {
-			// Tracer shutdown is best-effort; register it for the caller.
 			go func() {
 				<-ctx.Done()
 				observability.Shutdown(context.Background(), tp)
@@ -72,7 +69,6 @@ func New(ctx context.Context, serviceName string, metricsNamespace string) (*App
 	}, nil
 }
 
-// Close releases all infrastructure resources.
 func (a *App) Close() {
 	a.Redis.Close()
 	a.Pool.Close()

@@ -6,8 +6,6 @@ import (
 )
 
 
-// CreateAccountRequest holds the service layer input for creating an account.
-// This uses business domain types (int64 cents, UUIDs) rather than HTTP types.
 // Controllers convert their HTTP DTOs to this type.
 type CreateAccountRequest struct {
 	UserID         string
@@ -16,8 +14,6 @@ type CreateAccountRequest struct {
 }
 
 
-// CreatePaymentRequest holds the service layer input for creating a payment.
-// This uses business domain types (int64 cents, UUID, domain enums) rather than HTTP types.
 // Controllers convert their HTTP DTOs to this type.
 type CreatePaymentRequest struct {
 	IdempotencyKey       string
@@ -29,13 +25,11 @@ type CreatePaymentRequest struct {
 	Provider             *payment.Provider
 }
 
-// CreatePaymentResponse holds the result of creating a payment.
 type CreatePaymentResponse struct {
 	Payment *payment.Payment
 	IsAsync bool
 }
 
-// TransferRequest is a simplified request for internal transfers.
 type TransferRequest struct {
 	IdempotencyKey       string
 	SourceAccountID      uuid.UUID

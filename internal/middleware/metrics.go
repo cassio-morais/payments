@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Metrics is middleware that records HTTP request metrics.
 func Metrics(m *observability.Metrics) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

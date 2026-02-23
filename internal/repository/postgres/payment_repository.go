@@ -15,7 +15,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// allowedSortColumns is a whitelist of columns valid for ORDER BY.
 var allowedSortColumns = map[string]string{
 	"created_at": "created_at",
 	"amount":     "amount",
@@ -23,12 +22,10 @@ var allowedSortColumns = map[string]string{
 	"updated_at": "updated_at",
 }
 
-// PaymentRepository implements payment.Repository using PostgreSQL.
 type PaymentRepository struct {
 	pool *pgxpool.Pool
 }
 
-// NewPaymentRepository creates a new PaymentRepository.
 func NewPaymentRepository(pool *pgxpool.Pool) *PaymentRepository {
 	return &PaymentRepository{pool: pool}
 }
@@ -37,12 +34,10 @@ func (r *PaymentRepository) db(ctx context.Context) DBTX {
 	return ConnFromCtx(ctx, r.pool)
 }
 
-// scanner is satisfied by both pgx.Row and pgx.Rows.
 type scanner interface {
 	Scan(dest ...any) error
 }
 
-// Create inserts a new payment.
 func (r *PaymentRepository) Create(ctx context.Context, p *payment.Payment) error {
 	metadata, err := json.Marshal(p.Metadata)
 	if err != nil {
@@ -77,7 +72,6 @@ func (r *PaymentRepository) Create(ctx context.Context, p *payment.Payment) erro
 	return nil
 }
 
-// GetByID retrieves a payment by its ID.
 func (r *PaymentRepository) GetByID(ctx context.Context, id uuid.UUID) (*payment.Payment, error) {
 	return r.scanPayment(r.db(ctx).QueryRow(ctx,
 		`SELECT id, idempotency_key, payment_type, source_account_id, destination_account_id,
@@ -86,7 +80,6 @@ func (r *PaymentRepository) GetByID(ctx context.Context, id uuid.UUID) (*payment
 		 FROM payments WHERE id = $1`, id))
 }
 
-// GetByIdempotencyKey retrieves a payment by idempotency key.
 func (r *PaymentRepository) GetByIdempotencyKey(ctx context.Context, key string) (*payment.Payment, error) {
 	return r.scanPayment(r.db(ctx).QueryRow(ctx,
 		`SELECT id, idempotency_key, payment_type, source_account_id, destination_account_id,
@@ -95,7 +88,6 @@ func (r *PaymentRepository) GetByIdempotencyKey(ctx context.Context, key string)
 		 FROM payments WHERE idempotency_key = $1`, key))
 }
 
-// Update updates an existing payment.
 func (r *PaymentRepository) Update(ctx context.Context, p *payment.Payment) error {
 	metadata, err := json.Marshal(p.Metadata)
 	if err != nil {
@@ -126,7 +118,6 @@ func (r *PaymentRepository) Update(ctx context.Context, p *payment.Payment) erro
 	return nil
 }
 
-// List lists payments with optional filters.
 func (r *PaymentRepository) List(ctx context.Context, f payment.ListFilter) ([]*payment.Payment, error) {
 	query := `SELECT id, idempotency_key, payment_type, source_account_id, destination_account_id,
 		        amount, currency, status, provider, provider_transaction_id,
@@ -186,7 +177,6 @@ func (r *PaymentRepository) List(ctx context.Context, f payment.ListFilter) ([]*
 	return payments, rows.Err()
 }
 
-// AddEvent inserts a payment event.
 func (r *PaymentRepository) AddEvent(ctx context.Context, event *payment.PaymentEvent) error {
 	data, err := json.Marshal(event.EventData)
 	if err != nil {
@@ -203,7 +193,6 @@ func (r *PaymentRepository) AddEvent(ctx context.Context, event *payment.Payment
 	return nil
 }
 
-// GetEvents retrieves events for a payment.
 func (r *PaymentRepository) GetEvents(ctx context.Context, paymentID uuid.UUID) ([]*payment.PaymentEvent, error) {
 	rows, err := r.db(ctx).Query(ctx,
 		`SELECT id, payment_id, event_type, event_data, created_at
@@ -229,9 +218,7 @@ func (r *PaymentRepository) GetEvents(ctx context.Context, paymentID uuid.UUID) 
 	return events, rows.Err()
 }
 
-// --- scanning helpers ---
 
-// scanPayment scans a payment from any source implementing the scanner interface.
 func (r *PaymentRepository) scanPayment(s scanner) (*payment.Payment, error) {
 	p := &payment.Payment{Metadata: make(map[string]any)}
 	var (

@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository defines the interface for account persistence
 type Repository interface {
 	// Create creates a new account
 	Create(ctx context.Context, account *Account) error
@@ -31,7 +30,6 @@ type Repository interface {
 	Lock(ctx context.Context, id uuid.UUID) (*Account, error)
 }
 
-// Transaction represents an account transaction
 type Transaction struct {
 	ID              uuid.UUID
 	AccountID       uuid.UUID
@@ -43,7 +41,6 @@ type Transaction struct {
 	CreatedAt       time.Time
 }
 
-// TransactionType represents the type of transaction
 type TransactionType string
 
 const (

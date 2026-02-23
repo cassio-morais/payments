@@ -16,17 +16,14 @@ const (
 	DLQStream     = "payments:dlq"
 )
 
-// StreamProducer publishes messages to Redis Streams
 type StreamProducer struct {
 	client *redis.Client
 }
 
-// NewStreamProducer creates a new stream producer
 func NewStreamProducer(client *redis.Client) *StreamProducer {
 	return &StreamProducer{client: client}
 }
 
-// PublishPaymentEvent publishes a payment event to the stream
 func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID string, eventType string, data map[string]any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
@@ -51,7 +48,6 @@ func (p *StreamProducer) PublishPaymentEvent(ctx context.Context, paymentID stri
 	return nil
 }
 
-// PublishWebhookEvent publishes a webhook event to the stream
 func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID string, data map[string]any) error {
 	payload, err := json.Marshal(data)
 	if err != nil {
@@ -75,7 +71,6 @@ func (p *StreamProducer) PublishWebhookEvent(ctx context.Context, webhookID stri
 	return nil
 }
 
-// PublishToDLQ publishes a failed message to the dead letter queue
 func (p *StreamProducer) PublishToDLQ(ctx context.Context, paymentID string, reason string, originalData map[string]any) error {
 	payload, err := json.Marshal(originalData)
 	if err != nil {
@@ -100,7 +95,6 @@ func (p *StreamProducer) PublishToDLQ(ctx context.Context, paymentID string, rea
 	return nil
 }
 
-// StreamConsumer consumes messages from Redis Streams
 type StreamConsumer struct {
 	client        *redis.Client
 	stream        string
@@ -110,7 +104,6 @@ type StreamConsumer struct {
 	blockDuration time.Duration
 }
 
-// NewStreamConsumer creates a new stream consumer
 func NewStreamConsumer(
 	client *redis.Client,
 	stream string,
@@ -129,7 +122,6 @@ func NewStreamConsumer(
 	}
 }
 
-// CreateGroup creates a consumer group if it doesn't exist
 func (c *StreamConsumer) CreateGroup(ctx context.Context) error {
 	// Create stream if it doesn't exist
 	const busyGroupMsg = "BUSYGROUP"
@@ -140,7 +132,6 @@ func (c *StreamConsumer) CreateGroup(ctx context.Context) error {
 	return nil
 }
 
-// Read reads messages from the stream
 func (c *StreamConsumer) Read(ctx context.Context) ([]redis.XStream, error) {
 	streams, err := c.client.XReadGroup(ctx, &redis.XReadGroupArgs{
 		Group:    c.group,
@@ -161,7 +152,6 @@ func (c *StreamConsumer) Read(ctx context.Context) ([]redis.XStream, error) {
 	return streams, nil
 }
 
-// Ack acknowledges a message
 func (c *StreamConsumer) Ack(ctx context.Context, messageID string) error {
 	err := c.client.XAck(ctx, c.stream, c.group, messageID).Err()
 	if err != nil {
@@ -170,7 +160,6 @@ func (c *StreamConsumer) Ack(ctx context.Context, messageID string) error {
 	return nil
 }
 
-// Claim claims pending messages that have timed out
 func (c *StreamConsumer) Claim(ctx context.Context, minIdleTime time.Duration, messageIDs []string) ([]redis.XMessage, error) {
 	messages, err := c.client.XClaim(ctx, &redis.XClaimArgs{
 		Stream:   c.stream,

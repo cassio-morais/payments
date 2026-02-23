@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// Repository defines the interface for outbox persistence.
 type Repository interface {
 	// Insert creates a new outbox entry (typically inside a transaction)
 	Insert(ctx context.Context, entry *Entry) error

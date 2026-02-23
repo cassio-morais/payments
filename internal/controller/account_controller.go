@@ -9,12 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// AccountController handles account-related HTTP requests.
 type AccountController struct {
 	accountService *service.AccountService
 }
 
-// NewAccountController creates a new AccountController.
 func NewAccountController(accountService *service.AccountService) *AccountController {
 	return &AccountController{
 		accountService: accountService,
@@ -41,7 +39,6 @@ func (h *AccountController) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, FromAccount(acct))
 }
 
-// Get handles GET /api/v1/accounts/{id}
 func (h *AccountController) Get(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -58,7 +55,6 @@ func (h *AccountController) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, FromAccount(acct))
 }
 
-// GetBalance handles GET /api/v1/accounts/{id}/balance
 func (h *AccountController) GetBalance(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -78,7 +74,6 @@ func (h *AccountController) GetBalance(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetTransactions handles GET /api/v1/accounts/{id}/transactions
 func (h *AccountController) GetTransactions(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
