@@ -13,15 +13,18 @@ import (
 type PaymentController struct {
 	paymentService *service.PaymentService
 	paymentRepo    payment.Repository
+	authzService   *service.AuthzService
 }
 
 func NewPaymentController(
 	paymentService *service.PaymentService,
 	paymentRepo payment.Repository,
+	authzService *service.AuthzService,
 ) *PaymentController {
 	return &PaymentController{
 		paymentService: paymentService,
 		paymentRepo:    paymentRepo,
+		authzService:   authzService,
 	}
 }
 
@@ -50,6 +53,12 @@ func (h *PaymentController) CreatePayment(w http.ResponseWriter, r *http.Request
 			writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
 			return
 		}
+	}
+
+	// Authorization check
+	if err := h.authzService.VerifyPaymentAuthorization(r.Context(), sourceID); err != nil {
+		writeError(w, err)
+		return
 	}
 
 	var provider *payment.Provider
@@ -191,6 +200,12 @@ func (h *PaymentController) Transfer(w http.ResponseWriter, r *http.Request) {
 	destID, err := uuid.Parse(req.DestinationAccountID)
 	if err != nil {
 		writeJSON(w, http.StatusBadRequest, ErrorResponse{Error: "invalid destination_account_id", Code: "invalid_id"})
+		return
+	}
+
+	// Authorization check
+	if err := h.authzService.VerifyAccountOwnership(r.Context(), sourceID); err != nil {
+		writeError(w, err)
 		return
 	}
 

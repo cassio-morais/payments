@@ -26,6 +26,8 @@ type RouterDeps struct {
 	IdempotencyRepo *postgres.IdempotencyRepository
 	Metrics         *observability.Metrics
 	CORSConfig      config.CORSConfig
+	JWTSecret       string
+	AuthzService    *service.AuthzService
 }
 
 func NewRouter(deps RouterDeps) *chi.Mux {
@@ -48,8 +50,8 @@ func NewRouter(deps RouterDeps) *chi.Mux {
 	r.Use(customMW.Metrics(deps.Metrics))
 
 	healthH := NewHealthController(deps.Pool, deps.RedisClient)
-	accountH := NewAccountController(deps.AccountService)
-	paymentH := NewPaymentController(deps.PaymentService, deps.PaymentRepo)
+	accountH := NewAccountController(deps.AccountService, deps.AuthzService)
+	paymentH := NewPaymentController(deps.PaymentService, deps.PaymentRepo, deps.AuthzService)
 
 	r.Get("/health", healthH.Health)
 	r.Get("/health/live", healthH.Liveness)
