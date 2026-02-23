@@ -39,6 +39,10 @@ var (
 	// Validation errors
 	ErrValidationFailed = errors.New("validation failed")
 	ErrInvalidInput     = errors.New("invalid input")
+
+	// Authentication/Authorization errors
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrForbidden    = errors.New("forbidden")
 )
 
 // DomainError wraps errors with additional context
