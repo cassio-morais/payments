@@ -29,6 +29,8 @@ var errorMappings = []errorMapping{
 	{domainErrors.ErrInvalidStateTransition, http.StatusConflict, "invalid_state_transition"},
 	{domainErrors.ErrOptimisticLockFailed, http.StatusConflict, "conflict"},
 	{domainErrors.ErrProviderUnavailable, http.StatusServiceUnavailable, "provider_unavailable"},
+	{domainErrors.ErrUnauthorized, http.StatusUnauthorized, "unauthorized"},
+	{domainErrors.ErrForbidden, http.StatusForbidden, "forbidden"},
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
