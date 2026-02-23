@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/cassiomorais/payments/internal/bootstrap"
 	"github.com/cassiomorais/payments/internal/controller"
-	"github.com/cassiomorais/payments/internal/infrastructure/config"
 	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/cassiomorais/payments/internal/repository/postgres"
 	"github.com/cassiomorais/payments/internal/service"
@@ -64,34 +62,14 @@ func main() {
 		IdleTimeout:  app.Config.Server.IdleTimeout,
 	}
 
-	// Start server with TLS if enabled
-	if app.Config.Server.TLS.Enabled {
-		tlsConfig := createTLSConfig(app.Config.Server.TLS)
-		srv.TLSConfig = tlsConfig
-
-		go func() {
-			app.Logger.Info().
-				Str("addr", addr).
-				Str("tls_version", app.Config.Server.TLS.MinVersion).
-				Msg("Starting HTTPS server")
-
-			if err := srv.ListenAndServeTLS(
-				app.Config.Server.TLS.CertFile,
-				app.Config.Server.TLS.KeyFile,
-			); err != nil && err != http.ErrServerClosed {
-				app.Logger.Fatal().Err(err).Msg("Failed to start HTTPS server")
-			}
-		}()
-	} else {
-		app.Logger.Warn().Msg("TLS disabled - insecure for production")
-
-		go func() {
-			app.Logger.Info().Str("addr", addr).Msg("Starting HTTP server")
-			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				app.Logger.Fatal().Err(err).Msg("Failed to start server")
-			}
-		}()
-	}
+	go func() {
+		app.Logger.Info().
+			Str("addr", addr).
+			Msg("Starting HTTP server (TLS handled by load balancer)")
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			app.Logger.Fatal().Err(err).Msg("Failed to start server")
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -105,25 +83,4 @@ func main() {
 		app.Logger.Error().Err(err).Msg("Server forced to shutdown")
 	}
 	app.Logger.Info().Msg("Server exited")
-}
-
-func createTLSConfig(cfg config.TLSConfig) *tls.Config {
-	minVersion := tls.VersionTLS13
-	if cfg.MinVersion == "1.2" {
-		minVersion = tls.VersionTLS12
-	}
-
-	return &tls.Config{
-		MinVersion: uint16(minVersion),
-		CurvePreferences: []tls.CurveID{
-			tls.X25519,
-			tls.CurveP256,
-		},
-		PreferServerCipherSuites: true,
-		CipherSuites: []uint16{
-			tls.TLS_AES_256_GCM_SHA384,
-			tls.TLS_AES_128_GCM_SHA256,
-			tls.TLS_CHACHA20_POLY1305_SHA256,
-		},
-	}
 }

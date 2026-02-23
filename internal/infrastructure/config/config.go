@@ -27,19 +27,11 @@ type ServerConfig struct {
 	IdleTimeout     time.Duration `mapstructure:"idle_timeout"`
 	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
 	CORS            CORSConfig    `mapstructure:"cors"`
-	TLS             TLSConfig     `mapstructure:"tls"`
 }
 
 type CORSConfig struct {
 	AllowedOrigins   []string `mapstructure:"allowed_origins"`
 	AllowCredentials bool     `mapstructure:"allow_credentials"`
-}
-
-type TLSConfig struct {
-	Enabled    bool   `mapstructure:"enabled"`
-	CertFile   string `mapstructure:"cert_file"`
-	KeyFile    string `mapstructure:"key_file"`
-	MinVersion string `mapstructure:"min_version"` // "1.2" or "1.3"
 }
 
 type AuthConfig struct {
@@ -157,33 +149,6 @@ func (c *Config) Validate() error {
 		errs = append(errs, fmt.Errorf("worker.batch_size must be positive"))
 	}
 
-	// TLS validation
-	if c.Server.TLS.Enabled {
-		if c.Server.TLS.CertFile == "" {
-			errs = append(errs, fmt.Errorf("server.tls.cert_file required when TLS enabled"))
-		}
-		if c.Server.TLS.KeyFile == "" {
-			errs = append(errs, fmt.Errorf("server.tls.key_file required when TLS enabled"))
-		}
-
-		// Verify files exist
-		if c.Server.TLS.CertFile != "" {
-			if _, err := os.Stat(c.Server.TLS.CertFile); err != nil {
-				errs = append(errs, fmt.Errorf("server.tls.cert_file not found: %w", err))
-			}
-		}
-		if c.Server.TLS.KeyFile != "" {
-			if _, err := os.Stat(c.Server.TLS.KeyFile); err != nil {
-				errs = append(errs, fmt.Errorf("server.tls.key_file not found: %w", err))
-			}
-		}
-
-		// Validate min_version
-		if c.Server.TLS.MinVersion != "1.2" && c.Server.TLS.MinVersion != "1.3" {
-			errs = append(errs, fmt.Errorf("server.tls.min_version must be '1.2' or '1.3', got '%s'", c.Server.TLS.MinVersion))
-		}
-	}
-
 	// Production environment checks
 	env := os.Getenv("ENV")
 	if env == "production" || env == "prod" {
@@ -214,8 +179,6 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("server.shutdown_timeout", "30s")
 	v.SetDefault("server.cors.allowed_origins", []string{"*"})
 	v.SetDefault("server.cors.allow_credentials", false)
-	v.SetDefault("server.tls.enabled", false)
-	v.SetDefault("server.tls.min_version", "1.3")
 
 	// Database defaults
 	v.SetDefault("database.host", "localhost")
