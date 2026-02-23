@@ -73,8 +73,15 @@ func writeError(w http.ResponseWriter, err error) {
 	writeJSON(w, http.StatusInternalServerError, resp)
 }
 
+const maxRequestBodySize = 1 << 20 // 1MB
+
 func decodeAndValidate(r *http.Request, dst any) error {
+	r.Body = http.MaxBytesReader(nil, r.Body, maxRequestBodySize)
+
 	if err := json.NewDecoder(r.Body).Decode(dst); err != nil {
+		if err.Error() == "http: request body too large" {
+			return domainErrors.NewValidationError("body", "request too large (max 1MB)")
+		}
 		return domainErrors.NewValidationError("body", "invalid JSON: "+err.Error())
 	}
 	if err := validate.Struct(dst); err != nil {
