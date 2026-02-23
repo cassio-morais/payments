@@ -25,7 +25,8 @@ func TestPaymentController_CreatePayment(t *testing.T) {
 	providerFactory := providers.NewFactory()
 
 	paymentService := service.NewPaymentService(paymentRepo, accountRepo, outboxRepo, txManager, providerFactory)
-	handler := NewPaymentController(paymentService, paymentRepo)
+	authzService := service.NewAuthzService(accountRepo)
+	handler := NewPaymentController(paymentService, paymentRepo, authzService)
 
 	// Create a test source account
 	sourceAcct, _ := account.NewAccount("user1", 10000, "USD")

@@ -16,7 +16,8 @@ import (
 func TestAccountController_Create(t *testing.T) {
 	mockRepo := &testutil.MockAccountRepository{}
 	accountService := service.NewAccountService(mockRepo)
-	handler := NewAccountController(accountService)
+	authzService := service.NewAuthzService(mockRepo)
+	handler := NewAccountController(accountService, authzService)
 
 	mockRepo.CreateFunc = func(ctx context.Context, acct *account.Account) error {
 		return nil

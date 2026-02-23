@@ -61,6 +61,13 @@ func (h *PaymentController) CreatePayment(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Convert with error handling
+	amountCents, err := floatToCents(req.Amount)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
 	var provider *payment.Provider
 	if req.Provider != nil {
 		p := payment.Provider(*req.Provider)
@@ -72,7 +79,7 @@ func (h *PaymentController) CreatePayment(w http.ResponseWriter, r *http.Request
 		PaymentType:          payment.PaymentType(req.PaymentType),
 		SourceAccountID:      sourceID,
 		DestinationAccountID: destID,
-		Amount:               floatToCents(req.Amount),
+		Amount:               amountCents,
 		Currency:             req.Currency,
 		Provider:             provider,
 	})
@@ -209,11 +216,18 @@ func (h *PaymentController) Transfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Convert with error handling
+	amountCents, err := floatToCents(req.Amount)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
 	resp, err := h.paymentService.Transfer(r.Context(), service.TransferRequest{
 		IdempotencyKey:       idempotencyKey,
 		SourceAccountID:      sourceID,
 		DestinationAccountID: destID,
-		Amount:               floatToCents(req.Amount),
+		Amount:               amountCents,
 		Currency:             req.Currency,
 	})
 	if err != nil {

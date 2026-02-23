@@ -38,9 +38,16 @@ func (h *AccountController) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	req.UserID = authenticatedUserID
 
+	// Convert with error handling
+	balanceCents, err := floatToCents(req.InitialBalance)
+	if err != nil {
+		writeError(w, err)
+		return
+	}
+
 	acct, err := h.accountService.CreateAccount(r.Context(), service.CreateAccountRequest{
 		UserID:         req.UserID,
-		InitialBalance: floatToCents(req.InitialBalance),
+		InitialBalance: balanceCents,
 		Currency:       req.Currency,
 	})
 	if err != nil {

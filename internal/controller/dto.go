@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/cassiomorais/payments/internal/domain/account"
+	domainErrors "github.com/cassiomorais/payments/internal/domain/errors"
 	"github.com/cassiomorais/payments/internal/domain/payment"
 	"github.com/google/uuid"
 )
@@ -11,7 +14,7 @@ import (
 
 type CreateAccountRequest struct {
 	UserID         string  `json:"user_id" validate:"required"`
-	InitialBalance float64 `json:"initial_balance" validate:"gte=0"`
+	InitialBalance float64 `json:"initial_balance" validate:"gte=0,lte=922337203685477.0"`
 	Currency       string  `json:"currency" validate:"required,len=3"`
 }
 
@@ -19,7 +22,7 @@ type CreatePaymentRequest struct {
 	PaymentType          string  `json:"payment_type" validate:"required,oneof=internal_transfer external_payment"`
 	SourceAccountID      *string `json:"source_account_id,omitempty"`
 	DestinationAccountID *string `json:"destination_account_id,omitempty"`
-	Amount               float64 `json:"amount" validate:"required,gt=0"`
+	Amount               float64 `json:"amount" validate:"required,gt=0,lte=922337203685477.0"`
 	Currency             string  `json:"currency" validate:"required,len=3"`
 	Provider             *string `json:"provider,omitempty"`
 }
@@ -27,7 +30,7 @@ type CreatePaymentRequest struct {
 type TransferRequest struct {
 	SourceAccountID      string  `json:"source_account_id" validate:"required,uuid"`
 	DestinationAccountID string  `json:"destination_account_id" validate:"required,uuid"`
-	Amount               float64 `json:"amount" validate:"required,gt=0"`
+	Amount               float64 `json:"amount" validate:"required,gt=0,lte=922337203685477.0"`
 	Currency             string  `json:"currency" validate:"required,len=3"`
 }
 
@@ -147,8 +150,35 @@ func FromPayment(p *payment.Payment) *PaymentResponse {
 	return resp
 }
 
-func floatToCents(f float64) int64 {
-	return int64(f * 100)
+const maxAmountFloat = 922337203685477.0 // Safe max to avoid float64 precision issues (close to (2^63-1)/100)
+
+func floatToCents(f float64) (int64, error) {
+	// Check for special values
+	if math.IsNaN(f) {
+		return 0, domainErrors.NewValidationError("amount", "must be a valid number")
+	}
+	if math.IsInf(f, 0) {
+		return 0, domainErrors.NewValidationError("amount", "must be finite")
+	}
+
+	// Check bounds
+	if f <= 0 {
+		return 0, domainErrors.NewValidationError("amount", "must be greater than 0")
+	}
+	if f > maxAmountFloat {
+		return 0, domainErrors.NewValidationError("amount",
+			fmt.Sprintf("exceeds maximum allowed (%.2f)", maxAmountFloat))
+	}
+
+	// Convert with rounding
+	cents := int64(math.Round(f * 100))
+
+	// Paranoid overflow check
+	if cents < 0 {
+		return 0, domainErrors.NewValidationError("amount", "overflow detected")
+	}
+
+	return cents, nil
 }
 
 func centsToFloat(cents int64) float64 {
