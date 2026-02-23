@@ -11,6 +11,7 @@ import (
 	"github.com/cassiomorais/payments/internal/domain/account"
 	"github.com/cassiomorais/payments/internal/domain/outbox"
 	"github.com/cassiomorais/payments/internal/domain/payment"
+	"github.com/cassiomorais/payments/internal/middleware"
 	"github.com/cassiomorais/payments/internal/providers"
 	"github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/testutil"
@@ -60,6 +61,11 @@ func TestPaymentController_CreatePayment(t *testing.T) {
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/payments", bytes.NewReader(body))
 	req.Header.Set("Idempotency-Key", uuid.New().String())
+
+	// Add authenticated user context
+	ctx := context.WithValue(req.Context(), middleware.UserIDKey, "user1")
+	req = req.WithContext(ctx)
+
 	rec := httptest.NewRecorder()
 
 	handler.CreatePayment(rec, req)

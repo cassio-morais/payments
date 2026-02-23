@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/cassiomorais/payments/internal/domain/account"
+	"github.com/cassiomorais/payments/internal/middleware"
 	"github.com/cassiomorais/payments/internal/service"
 	"github.com/cassiomorais/payments/internal/testutil"
 )
@@ -30,6 +31,11 @@ func TestAccountController_Create(t *testing.T) {
 	}
 	body, _ := json.Marshal(reqBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/accounts", bytes.NewReader(body))
+
+	// Add authenticated user context
+	ctx := context.WithValue(req.Context(), middleware.UserIDKey, "user123")
+	req = req.WithContext(ctx)
+
 	rec := httptest.NewRecorder()
 
 	handler.Create(rec, req)
